@@ -8,10 +8,8 @@ import android.os.Message;
 import android.util.Log;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.net.*;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -105,7 +103,7 @@ public class ServerDevice extends Device {
             try {
                 //InetAddress.getByName("255.255.255.255")
                 sendPacket = new DatagramPacket(msg.getBytes(), msg.length(),
-                       getBroadcastAddress() , CLIENT_UDP_PROT);
+                       getBroadcastAddress() , CLIENT_UDP_PORT);
             } catch (IOException e) {
                 Log.e(TAG, "get broadcast address error", e);
             }

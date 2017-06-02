@@ -2,7 +2,6 @@ package com.ling.screen;
 
 import android.util.Log;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.net.*;
 
@@ -15,7 +14,7 @@ public class Device implements Serializable{
     private static final String TAG = "Device";
     public static final int WAITING_STATUS = 1;
     public static final int CALIBRATE_STATUS = 2;
-    public static final int CLIENT_UDP_PROT = 9898;
+    public static final int CLIENT_UDP_PORT = 9999;
     public static final int CLIENT_TCP_PORT = 9998;
     public static final String IMAGE_ROUTE = "";
     double posX, posY, angle;
@@ -43,7 +42,7 @@ public class Device implements Serializable{
     public class CreateSocketThread implements Runnable{
         public void run() {
             try {
-                udpSocket = new DatagramSocket(CLIENT_UDP_PROT, InetAddress.getByName("0.0.0.0"));
+                udpSocket = new DatagramSocket(CLIENT_UDP_PORT, InetAddress.getByName("0.0.0.0"));
                 udpSocket.setBroadcast(true);
             } catch (SocketException e) {
                 Log.e(TAG, "create socket error", e);
