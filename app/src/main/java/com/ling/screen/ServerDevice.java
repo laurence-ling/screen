@@ -168,4 +168,18 @@ public class ServerDevice extends Device{
 	        }
         }
     }
+
+    // ===================== functions while calibration ======================
+    class CalibrationDataReceivingThread implements Runnable{
+        DatagramSocket touchEventSocket;
+        DatagramPacket touchEventPacket;
+        @Override
+        public void run(){
+            byte[] buf = new byte[48];
+            
+            while(status == Device.CALIBRATE_STATUS){
+                
+            }
+        }
+    }
 }
