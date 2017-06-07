@@ -28,6 +28,7 @@ public class ClientDevice extends Device {
     AddGroupActivity agActivity;
 
     public ClientDevice(){
+        super();
         new Thread(new CreateSocketThread()).start();
         status = Device.WAITING_STATUS;
     }
