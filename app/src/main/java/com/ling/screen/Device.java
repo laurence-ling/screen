@@ -17,19 +17,35 @@ public class Device implements Serializable{
     public static final int CLIENT_UDP_PORT = 9999;
     public static final int CLIENT_TCP_PORT = 9998;
     public static final String IMAGE_ROUTE = "";
-    double posX, posY, angle;
-    double scr_width, scr_height;
-    int resX, resY;
+    
+    double posX=0, posY=0, angle=0;
+    double deltaT=0;
+    InetAddress father=null; // your present daddy when calibrating
+    
+    static double scr_width, scr_height;
+    static int resX, resY;
+    
+    public static Device myDevice;
+    
     InetAddress address; // this device's own ip address
     DatagramSocket udpSocket;
     volatile int status; // current status
 
     public Device(){
-        new Thread(new SetLocalAddressThread()).start();
+        Thread setLocalAddressThread=new Thread(new SetLocalAddressThread());
+        setLocalAddressThread.start();
+        // Not good enough, though
+        try{
+            setLocalAddressThread.join();
+        }catch(InterruptedException e){
+            Log.i(TAG,"Device Initialization Interrupted!");
+        }
+        
     }
     public Device(InetAddress _addr){
         address = _addr;
     }
+    
     public class SetLocalAddressThread implements Runnable{
         public void run(){
             try{
@@ -60,5 +76,10 @@ public class Device implements Serializable{
                 udpSocket.close();
             }
         }
+    }
+    
+    public static void printScreenInfo(){
+        Log.i(TAG,"Screen Resolution = "+resX+" * "+resY);
+        Log.i(TAG,"Screen Size = "+scr_width+"mm * "+scr_height+"mm");
     }
 }

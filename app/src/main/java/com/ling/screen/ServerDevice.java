@@ -8,6 +8,7 @@ import android.os.Message;
 import android.util.Log;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +17,7 @@ import java.util.Map;
  * Created by ling on 2017/5/23.
  */
 
-public class ServerDevice extends Device {
+public class ServerDevice extends Device{
     private static final String TAG = "Server Device";
     String groupName;
     Map<InetAddress, Device> deviceMap;
@@ -25,8 +26,9 @@ public class ServerDevice extends Device {
     private NewGroupActivity ngActivity;
 
     public ServerDevice(){
+        super();
         deviceMap = new HashMap<>();
-        deviceMap.put(this.address, this);
+        deviceMap.put(this.address, this); // After address has been initialized or will be NULL
         status = Device.WAITING_STATUS;
         new Thread(new CreateSocketThread()).start();
     }
@@ -155,6 +157,15 @@ public class ServerDevice extends Device {
             if (beaconSocket != null){
                 beaconSocket.close();
             }
+        }
+    }
+    
+    public void printInfo(){
+        Log.i(TAG,"Group name = "+groupName);
+        for(InetAddress key : deviceMap.keySet()) {
+	        if(key!=null){
+		        Log.i(TAG,"   Device: "+key.toString());
+	        }
         }
     }
 }
