@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        is-multidex="true"
+        jar="C:\Users\datou\Desktop\aaa\screen\app\build\intermediates\incremental-classes\debug\instant-run-bootstrap.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.3"
+        sha1="6959b5f3a6061e9d611c658b5ee4887b2558905a">
+        <dex dex="C:\Users\datou\Desktop\aaa\screen\app\build\intermediates\transforms\dex\debug\folders\1000\10000\instant-run-bootstrap_bd1967b871ff63748b5c5c6bb0d7a480e7a6e76d\classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="C:\Users\datou\Desktop\aaa\screen\app\build\intermediates\incremental-runtime-classes\debug\instant-run.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.3"
+        sha1="caff8e51a24901cfc9cd7e1cf83d84f4cb0c103b">
+        <dex dex="C:\Users\datou\Desktop\aaa\screen\app\build\intermediates\transforms\dex\debug\folders\1000\10000\instant-run_8343a7d2801beb7a4bd6a952b2122dc7b9ec2e24\classes.dex" />
+    </item>
+
+</items>
