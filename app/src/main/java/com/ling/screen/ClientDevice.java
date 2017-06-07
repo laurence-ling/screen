@@ -23,7 +23,6 @@ import java.util.Map;
 
 public class ClientDevice extends Device {
     private static final String TAG = "Client Device";
-    InetAddress serverAddr; // server's udp address
     ServerSocket listenSocket; // tcp socket for receive file
     AddGroupActivity agActivity;
 

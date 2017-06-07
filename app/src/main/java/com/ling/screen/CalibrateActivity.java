@@ -10,6 +10,7 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import com.iraka.widget.Coordinate;
+import com.iraka.widget.ScreenEvent;
 
 /**
  * Created by ling on 2017/5/25.
@@ -42,12 +43,21 @@ public class CalibrateActivity extends Activity{
 			public boolean onTouch(View view,MotionEvent ev){
 				//Log.i(TAG,"Touch: "+ev.toString());
 				if(ev.getAction()==MotionEvent.ACTION_DOWN){
-					double x=ev.getX();
-					double y=ev.getY();
 					Coordinate deviceCoord=new Coordinate(myDevice.posX,myDevice.posY,myDevice.angle);
+					/*double x=ev.getRawX();
+					double y=ev.getRawY();
 					Coordinate globalCoord=(new Coordinate(x,y)).toGlobal(deviceCoord);
-					Log.i(TAG,globalCoord.toString());
+					Log.i(TAG,globalCoord.toString());*/
+					
+					ScreenEvent sev=new ScreenEvent(ev,deviceCoord);
+					byte[] buffer=new byte[44];
+					sev.writeEventBuffer(buffer,0);
+					ScreenEvent sevDeco=new ScreenEvent(buffer,0);
+					Log.i(TAG,sev.toString());
+					Log.i(TAG,sevDeco.toString());
 				}
+				
+				
 				return true;
 			}
 		});
