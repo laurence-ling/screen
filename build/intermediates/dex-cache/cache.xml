@@ -2,6 +2,24 @@
 <items version="2" >
 
     <item
+<<<<<<< HEAD
+        is-multidex="true"
+        jar="C:\Users\datou\Desktop\aaa\screen\app\build\intermediates\incremental-classes\debug\instant-run-bootstrap.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.3"
+        sha1="6959b5f3a6061e9d611c658b5ee4887b2558905a">
+        <dex dex="C:\Users\datou\Desktop\aaa\screen\app\build\intermediates\transforms\dex\debug\folders\1000\10000\instant-run-bootstrap_bd1967b871ff63748b5c5c6bb0d7a480e7a6e76d\classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="C:\Users\datou\Desktop\aaa\screen\app\build\intermediates\incremental-runtime-classes\debug\instant-run.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.3"
+        sha1="caff8e51a24901cfc9cd7e1cf83d84f4cb0c103b">
+        <dex dex="C:\Users\datou\Desktop\aaa\screen\app\build\intermediates\transforms\dex\debug\folders\1000\10000\instant-run_8343a7d2801beb7a4bd6a952b2122dc7b9ec2e24\classes.dex" />
+=======
         is-multidex="false"
         jar="C:\Android\sdk\extras\m2repository\com\android\support\constraint\constraint-layout-solver\1.0.2\constraint-layout-solver-1.0.2.jar"
         jumboMode="false"
@@ -108,6 +126,7 @@
         revision="25.0.3"
         sha1="da27a32db6af8954ee8061537c7d476fcb1df46f">
         <dex dex="D:\Text\Academic\Net &amp; Web\Internship\Project\screen\app\build\intermediates\pre-dexed\debug\classes_45e3424881a4b7de241e34ed492f1afb76b37406.jar" />
+>>>>>>> 0e7cf890503a28032db56f723ffd5006d662f2bf
     </item>
 
 </items>
