@@ -18,12 +18,13 @@ public class Device implements Serializable{
     public static final int CLIENT_TCP_PORT = 9998;
     public static final String IMAGE_ROUTE = "";
     
-    double posX=0, posY=0, angle=0;
+    double posX=0, posY=0, angle=0; // global coord (mm,mm,rad_CW)
     double deltaT=0;
     InetAddress father=null; // your present daddy when calibrating
     
-    static double scr_width, scr_height;
-    static int resX, resY;
+    public static double scr_width, scr_height; // in mm
+    public static double ppmX, ppmY; // pixel per mmm
+    public static int resX, resY; // resolution
     
     public static Device myDevice;
     

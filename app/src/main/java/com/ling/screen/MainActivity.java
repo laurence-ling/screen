@@ -69,6 +69,8 @@ public class MainActivity extends Activity {
         
         Device.scr_width=x*25.4;
         Device.scr_height=y*25.4;
+        Device.ppmX=dm.xdpi/25.4;
+        Device.ppmY=dm.ydpi/25.4;
         
         Device.printScreenInfo();
     
