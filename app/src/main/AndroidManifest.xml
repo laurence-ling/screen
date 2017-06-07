@@ -11,18 +11,22 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity"
+                  android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".AddGroupActivity">
+        <activity android:name=".AddGroupActivity"
+                  android:launchMode="singleTask">
         </activity>
-        <activity android:name=".NewGroupActivity">
+        <activity android:name=".NewGroupActivity"
+                  android:launchMode="singleTask">
         </activity>
-        <activity android:name=".CalibrateActivity">
+        <activity android:name=".CalibrateActivity"
+                  android:launchMode="singleTask">
         </activity>
         <activity android:name="datouhou.debug">
             <intent-filter>

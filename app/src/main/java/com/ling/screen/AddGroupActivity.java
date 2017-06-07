@@ -68,6 +68,7 @@ public class AddGroupActivity extends Activity{
 			if(msg.what == 2){ // Connection successful
                 myDevice.status = Device.CALIBRATE_STATUS;
                 Intent calibrate = new Intent(AddGroupActivity.this, CalibrateActivity.class);
+				Device.myDevice=myDevice;
                 AddGroupActivity.this.startActivity(calibrate);
 			}
 		}
