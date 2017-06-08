@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
@@ -37,12 +38,17 @@ public class CalibrateActivity extends Activity{
 		setContentView(R.layout.activity_calibration);
 		Log.i(TAG,"calibrate start");
 		
+		// myDevice network init
 		myDevice=Device.myDevice;
-		myDevice.initCalibrationSocket();
 		Log.i(TAG,"This device is server: "+MainActivity.isServer);
+		myDevice.initCalibrationSocket();
 		if(MainActivity.isServer){
 			//((ServerDevice)myDevice).printInfo();
-			((ServerDevice)myDevice).receiveCalibrationData(this);
+			//((ServerDevice)myDevice).receiveCalibrationData(this);
+			((ServerDevice)myDevice).syncAllTime(this);
+		}
+		else{
+			myDevice.respondTimeSync(this);
 		}
 		
 		infoText=(TextView)findViewById(R.id.info_text);
@@ -57,14 +63,6 @@ public class CalibrateActivity extends Activity{
 		@Override
 		public boolean onTouch(View view,MotionEvent ev){
 			Coordinate deviceCoord=new Coordinate(myDevice.posX,myDevice.posY,myDevice.angle);
-			/*if(ev.getAction()==MotionEvent.ACTION_DOWN){
-				ScreenEvent sev=new ScreenEvent(ev,deviceCoord);
-				byte[] buffer=new byte[44];
-				sev.writeEventBuffer(buffer,0);
-				ScreenEvent sevDeco=new ScreenEvent(buffer,0);
-				Log.i(TAG,sev.toString());
-				Log.i(TAG,sevDeco.toString());
-			}*/
 			
 			switch(ev.getAction()){
 				case MotionEvent.ACTION_CANCEL:
@@ -104,9 +102,9 @@ public class CalibrateActivity extends Activity{
 				canvas.drawCircle((float)cd2.x,(float)cd2.y,10f,paint);
 			}
 			
-			double vX=Math.round((ev1.posX-ev2.posX)/(ev1.timestamp-ev2.timestamp)*1000)/1000.;
-			double vY=Math.round((ev1.posY-ev2.posY)/(ev1.timestamp-ev2.timestamp)*1000)/1000.;
-			canvas.drawText("("+vX+","+vY+")",(float)cd1.x+10,(float)cd1.y+10,paint);
+			//double vX=Math.round((ev1.posX-ev2.posX)/(ev1.timestamp-ev2.timestamp)*1000)/1000.;
+			//double vY=Math.round((ev1.posY-ev2.posY)/(ev1.timestamp-ev2.timestamp)*1000)/1000.;
+			//canvas.drawText("("+vX+","+vY+")",(float)cd1.x+10,(float)cd1.y+10,paint);
 		}
 		mainFrame.setBackground(new BitmapDrawable(CalibrateActivity.this.getResources(),bgBMP));
 	}
@@ -115,12 +113,21 @@ public class CalibrateActivity extends Activity{
 		@Override
 		public void handleMessage(Message msg){
 			if(msg.what==0){ // Calibration Successful
-				infoText.setText("Success");
+				//infoText.setText("Success");
+				infoText.setBackgroundColor(Color.parseColor("#00FFC0"));
 			}
 			
 			if(msg.what==1){ // Calibration Failed
 			}
 			
+			if(msg.what==2){ // Time Synchronized
+				infoText.setBackgroundColor(Color.parseColor("#0080FF"));
+			}
+			
+			if(msg.what==3){ // Calibration Complete
+				infoText.setBackgroundColor(Color.parseColor("#FF8000"));
+				infoText.setText(new Coordinate(myDevice.posX,myDevice.posY,myDevice.angle).toString());
+			}
 		}
 	};
 }
