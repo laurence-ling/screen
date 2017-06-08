@@ -35,23 +35,23 @@ import static android.R.attr.data;
 public class WorkingActivity extends Activity{
     private static int RESULT_LOAD_IMAGE=1;
     private static final String TAG = "WorkingActivity";
-    private TouchImageView touchImg;
-    public Handler handler= new Handler();
-    public Handler handler2 = new Handler();
     Device myDevice;
     public byte [] buffer=new byte[100];;
     public DatagramPacket Package;
-    int count=0;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_working);
-        touchImg = (TouchImageView)findViewById(R.id.imgView);
 
         myDevice=Device.myDevice;
-       if(MainActivity.isServer){
+        myDevice.touchImage = (TouchImageView)findViewById(R.id.imgView);
+
+        if(!MainActivity.isServer){
+            ((ClientDevice)myDevice).acceptFile(WorkingActivity.this);
+        }
+        else {
            Log.i(TAG,"This device is server: "+MainActivity.isServer);
            myDevice.serverAddr = myDevice.address;
            Button button1=(Button)findViewById(R.id.button1);
@@ -64,11 +64,11 @@ public class WorkingActivity extends Activity{
                     startActivityForResult(i,RESULT_LOAD_IMAGE);
                 }
            });
-           new Thread(new myRunnable1()).start();
+           new Thread(new ReceiveEventThread()).start();
         }
-     new Thread(new Runnable2()).start();
+     new Thread(new SendEventThread()).start();
     }
-    public class Runnable2 implements Runnable{
+    public class SendEventThread implements Runnable{
         @Override
         public void run() {
             while (true) {
@@ -78,14 +78,14 @@ public class WorkingActivity extends Activity{
                     e.printStackTrace();
                 }
                 try {
-                    touchImg.task(myDevice.serverAddr);
+                    myDevice.touchImage.task(myDevice.serverAddr);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         }
     }
-    public class myRunnable1 implements Runnable{
+    public class ReceiveEventThread implements Runnable{
 
         @Override
         public void run() {
@@ -150,8 +150,7 @@ public class WorkingActivity extends Activity{
             String picturePath = cursor.getString(columnIndex);
             cursor.close();
             //send;
-            touchImg = (TouchImageView) findViewById(R.id.imgView);
-            touchImg.setImageBitmap(BitmapFactory.decodeFile(picturePath));
+            myDevice.touchImage.setImageBitmap(BitmapFactory.decodeFile(picturePath));
             Bitmap bitmap = BitmapFactory.decodeFile(picturePath);
             ((ServerDevice)myDevice).sendFile(bitmap);
         }
