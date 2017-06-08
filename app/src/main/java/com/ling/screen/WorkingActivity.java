@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Message;
 import android.provider.MediaStore;
 import android.os.Handler;
 import android.util.Log;
@@ -47,14 +48,15 @@ public class WorkingActivity extends Activity{
 
         myDevice=Device.myDevice;
         myDevice.touchImage = (TouchImageView)findViewById(R.id.imgView);
-
+        Button button1=(Button)findViewById(R.id.button1);
         if(!MainActivity.isServer){
+            button1.setVisibility(View.GONE);
             ((ClientDevice)myDevice).acceptFile(WorkingActivity.this);
         }
         else {
            Log.i(TAG,"This device is server: "+MainActivity.isServer);
            myDevice.serverAddr = myDevice.address;
-           Button button1=(Button)findViewById(R.id.button1);
+
            button1.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -151,9 +153,16 @@ public class WorkingActivity extends Activity{
             cursor.close();
             //send;
             myDevice.touchImage.setImageBitmap(BitmapFactory.decodeFile(picturePath));
-            Bitmap bitmap = BitmapFactory.decodeFile(picturePath);
-            ((ServerDevice)myDevice).sendFile(bitmap);
+            myDevice.bitmap = BitmapFactory.decodeFile(picturePath);
+            ((ServerDevice)myDevice).sendFile(myDevice.bitmap);
         }
     }
-
+    public Handler handler=new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.what == 1) { // client receive image file
+                myDevice.touchImage.setImageBitmap(myDevice.bitmap);
+            }
+        }
+    };
 }

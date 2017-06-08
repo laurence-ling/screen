@@ -3,6 +3,7 @@ package com.ling.screen;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.icu.util.Measure;
 import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
@@ -23,6 +24,8 @@ import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.crypto.spec.DESedeKeySpec;
 
 /**
  * Created by ling on 2017/5/23.
@@ -131,27 +134,34 @@ public class ClientDevice extends Device {
     }
     public void acceptFile(WorkingActivity _wkActivity){
         wkAcitivity = _wkActivity;
-        new Thread(new AcceptFileThread(this)).start();
+        new Thread(new AcceptFileThread()).start();
     }
     class AcceptFileThread implements Runnable{
-        Device device;
-        public AcceptFileThread(Device _device){
-            device = _device;
-        }
         @Override
         public void run(){
             try {
-                listenSocket = new ServerSocket(CLIENT_TCP_PORT);
+                Log.i(TAG, "create listen socket");
+                listenSocket = new ServerSocket(Device.CLIENT_TCP_PORT);
                 Socket socket = listenSocket.accept();
+                Log.i(TAG, "accept file from " + socket.getInetAddress());
                 DataInputStream iStream = new DataInputStream(socket.getInputStream());
                 byte[] barray = new byte[Device.MAX_IMAGE_SIZE];
-                int len = iStream.read(barray);
-                Bitmap bitmap = BitmapFactory.decodeByteArray(barray, 0, len);
-                device.touchImage = (TouchImageView)wkAcitivity.findViewById(R.id.imgView);
-                device.touchImage.setImageBitmap(bitmap);
+                byte[] temp = new byte[8192];
+                int len, totalSize = 0;
+                while((len = iStream.read(temp)) > 0){
+                    Log.i(TAG, "receive bytes len " + len);
+                    System.arraycopy(temp, 0, barray, totalSize, len);
+                    totalSize += len;
+                }
+
+                bitmap = BitmapFactory.decodeByteArray(barray, 0, totalSize);
+
             } catch (IOException e) {
                 Log.e(TAG, "listen socket error", e);
             }
+            Message mapMsg = new Message();
+            mapMsg.what = 1;
+            wkAcitivity.handler.sendMessage(mapMsg);
         }
     }
     @Override
