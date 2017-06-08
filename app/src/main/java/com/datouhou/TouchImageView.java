@@ -3,15 +3,11 @@ package com.datouhou;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.Matrix;
-import android.graphics.PointF;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ImageView;
 
 import com.iraka.widget.ScreenEvent;
 import com.ling.screen.Device;
@@ -21,7 +17,6 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.util.TimerTask;
 
 /**
  * @ClassName: TouchImageView

@@ -1,15 +1,20 @@
 package com.ling.screen;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
 import java.io.IOException;
-import java.io.Serializable;
-import java.net.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,10 +25,12 @@ import java.util.Map;
 public class ServerDevice extends Device{
     private static final String TAG = "Server Device";
     String groupName;
-    Map<InetAddress, Device> deviceMap;
+    public Map<InetAddress, Device> deviceMap;
     DatagramSocket beaconSocket; //server only socket, non-bind
     Thread beaconThread;
     private NewGroupActivity ngActivity;
+    Bitmap picBitmap;
+    private Handler handler= new Handler();
 
     public ServerDevice(){
         super();
@@ -136,15 +143,18 @@ public class ServerDevice extends Device{
     class SendFileThread implements Runnable{
         @Override
         public void run() {
-            for (InetAddress clientAddr : deviceMap.keySet())
-                try {
-                    Socket socket = new Socket(clientAddr, CLIENT_TCP_PORT);
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                for (InetAddress clientAddr : deviceMap.keySet())
+                    try {
+                        Socket socket = new Socket(clientAddr, CLIENT_TCP_PORT);
+                        socket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+            }
         }
-    }
+
+
+
     @Override
     public void closeSocket(){
         super.closeSocket();
