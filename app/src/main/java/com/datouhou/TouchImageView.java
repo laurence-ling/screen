@@ -124,7 +124,7 @@ public class TouchImageView extends android.support.v7.widget.AppCompatImageView
                 ScreenEvent Sevent = new ScreenEvent(10,point[0],point[1]);
                 Sevent.writeEventBuffer(buffer,0);
             }
-            if(finger_count==2){
+            else if(finger_count==2){
                 ScreenEvent Sevent = new ScreenEvent(20,point[0],point[1]);
                 Sevent.writeEventBuffer(buffer,0);
                 Sevent = new ScreenEvent(20,point[2],point[3]);
