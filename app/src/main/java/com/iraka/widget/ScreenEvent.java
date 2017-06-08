@@ -2,11 +2,13 @@ package com.iraka.widget;
 
 import android.view.MotionEvent;
 
+import java.io.Serializable;
+
 /**
  * Created by Iraka Crow on 2017/6/8.
  */
 
-public class ScreenEvent{
+public class ScreenEvent implements Serializable{
 	
 	public static final int DOWN=MotionEvent.ACTION_DOWN;
 	public static final int MOVE=MotionEvent.ACTION_MOVE;

@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
 
+import com.iraka.widget.ScreenEvent;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.*;
@@ -170,15 +172,51 @@ public class ServerDevice extends Device{
     }
 
     // ===================== functions while calibration ======================
-    class CalibrationDataReceivingThread implements Runnable{
-        DatagramSocket touchEventSocket;
+    private CalibrateActivity ca;
+    public void receiveCalibrationData(CalibrateActivity ca_){ // Only SERVER has to start this process
+        ca=ca_;
+        new Thread(new CalibrationDataReceivingThread()).start();
+    }
+    
+    private class CalibrationDataReceivingThread implements Runnable{
         DatagramPacket touchEventPacket;
+        DatagramPacket ackPacket;
         @Override
         public void run(){
-            byte[] buf = new byte[48];
-            
-            while(status == Device.CALIBRATE_STATUS){
+            byte[] buffer= new byte[88];
+            try{
+                touchEventPacket=new DatagramPacket(buffer,buffer.length);
+                ScreenEvent evLastStart=null,evLastEnd=null;
+                ScreenEvent evNowStart=null,evNowEnd=null;
+    
+                Log.i(TAG,"Receive Calib Data Initialized, STATUS="+status);
                 
+                while(status==Device.CALIBRATE_STATUS){
+                    try{
+                        udpSocket.setSoTimeout(0);
+                        udpSocket.receive(touchEventPacket);
+                    }catch(SocketTimeoutException e){
+                        // Do Nothing
+                        Log.i(TAG,"Server time out, restarting ...");
+                        continue;
+                    }
+                    buffer=touchEventPacket.getData();
+                    evLastStart=evNowStart;
+                    evLastEnd=evNowEnd;
+                    evNowStart=new ScreenEvent(buffer,0);
+                    evNowEnd=new ScreenEvent(buffer,44);
+                    if(evLastStart==null)continue; // Onlt received 1 data pack
+                    
+                    Log.i(TAG,"Receive Event st: "+evNowStart);
+                    Log.i(TAG,"Receive Event ed: "+evNowEnd);
+    
+                    ackPacket=new DatagramPacket(new byte[]{'#',0x00},2); // Successful
+                    ackPacket.setSocketAddress(touchEventPacket.getSocketAddress());
+                    udpSocket.send(ackPacket);
+                }
+            }catch(IOException e){
+                Log.i(TAG,"Receiving Calibration Data Initializing failed");
+                e.printStackTrace();
             }
         }
     }

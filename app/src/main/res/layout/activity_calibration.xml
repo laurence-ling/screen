@@ -11,5 +11,5 @@
         android:layout_height="wrap_content"
         android:background="@color/colorPrimary"
         android:text="TextView"
-        android:textSize="36sp"/>
+        android:textSize="18sp"/>
 </FrameLayout>
