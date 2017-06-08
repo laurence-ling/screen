@@ -2,6 +2,8 @@ package com.ling.screen;
 
 import android.util.Log;
 
+import com.datouhou.TouchImageView;
+
 import java.io.Serializable;
 import java.net.*;
 
@@ -17,7 +19,9 @@ public class Device implements Serializable{
     public static final int CLIENT_UDP_PORT = 9999;
     public static final int CLIENT_TCP_PORT = 9998;
     public static final String IMAGE_ROUTE = "";
-    
+    public static final int MAX_IMAGE_SIZE = 1024*1024;
+
+    TouchImageView touchImage;
     double posX=0, posY=0, angle=0; // global coord (mm,mm,rad_CW)
     double deltaT=0;
 
@@ -55,6 +59,7 @@ public class Device implements Serializable{
         public void run(){
             try{
                 address = InetAddress.getLocalHost();
+                Log.i(TAG, "local address " + address.toString());
             }catch(UnknownHostException e){
                 Log.e(TAG, "set local host error", e);
             }

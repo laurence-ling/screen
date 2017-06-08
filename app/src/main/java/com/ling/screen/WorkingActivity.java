@@ -3,6 +3,7 @@ package com.ling.screen;
 import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -144,6 +146,9 @@ public class WorkingActivity extends Activity{
             //send;
             touchImg = (TouchImageView) findViewById(R.id.imgView);
             touchImg.setImageBitmap(BitmapFactory.decodeFile(picturePath));
+            Bitmap bitmap = BitmapFactory.decodeFile(picturePath);
+            ((ServerDevice)myDevice).sendFile(bitmap);
         }
     }
+
 }
