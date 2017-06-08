@@ -1,9 +1,15 @@
 package com.ling.screen;
 
+import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Message;
 import android.util.Log;
 
+import com.datouhou.TouchImageView;
+
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -14,6 +20,7 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,6 +32,7 @@ public class ClientDevice extends Device {
     private static final String TAG = "Client Device";
     ServerSocket listenSocket; // tcp socket for receive file
     AddGroupActivity agActivity;
+    WorkingActivity wkAcitivity;
 
     public ClientDevice(){
         super();
@@ -121,12 +129,26 @@ public class ClientDevice extends Device {
             }
         }
     }
+    public void acceptFile(WorkingActivity _wkActivity){
+        wkAcitivity = _wkActivity;
+        new Thread(new AcceptFileThread(this)).start();
+    }
     class AcceptFileThread implements Runnable{
+        Device device;
+        public AcceptFileThread(Device _device){
+            device = _device;
+        }
         @Override
         public void run(){
             try {
                 listenSocket = new ServerSocket(CLIENT_TCP_PORT);
-                Socket soket = listenSocket.accept();
+                Socket socket = listenSocket.accept();
+                DataInputStream iStream = new DataInputStream(socket.getInputStream());
+                byte[] barray = new byte[Device.MAX_IMAGE_SIZE];
+                int len = iStream.read(barray);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(barray, 0, len);
+                device.touchImage = (TouchImageView)wkAcitivity.findViewById(R.id.imgView);
+                device.touchImage.setImageBitmap(bitmap);
             } catch (IOException e) {
                 Log.e(TAG, "listen socket error", e);
             }

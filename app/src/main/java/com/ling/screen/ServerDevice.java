@@ -9,12 +9,20 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
+<<<<<<< HEAD
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
+=======
+import java.io.Serializable;
+import java.net.*;
+import java.nio.ByteBuffer;
+>>>>>>> 3ea2329ff2cc9c2932ec38c892cede7588e0f4e0
 import java.util.HashMap;
 import java.util.Map;
 
@@ -140,9 +148,21 @@ public class ServerDevice extends Device{
         return InetAddress.getByAddress(quads);
     }
 
+    public void sendFile(Bitmap bitmap){
+        int bytes = bitmap.getByteCount();
+        ByteBuffer buffer = ByteBuffer.allocate(bytes);
+        bitmap.copyPixelsToBuffer(buffer);
+        new Thread(new SendFileThread(buffer.array())).start();
+    }
+
     class SendFileThread implements Runnable{
+        byte[] buffer;
+        public SendFileThread(byte[] buf){
+            buffer = buf;
+        }
         @Override
         public void run() {
+<<<<<<< HEAD
                 for (InetAddress clientAddr : deviceMap.keySet())
                     try {
                         Socket socket = new Socket(clientAddr, CLIENT_TCP_PORT);
@@ -151,6 +171,19 @@ public class ServerDevice extends Device{
                         e.printStackTrace();
                     }
             }
+=======
+            for (InetAddress clientAddr : deviceMap.keySet())
+                try {
+                    if (address == clientAddr)
+                        continue; // server self
+                    Socket socket = new Socket(clientAddr, CLIENT_TCP_PORT);
+                    DataOutputStream oStream = new DataOutputStream(socket.getOutputStream());
+                    oStream.write(buffer);
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+>>>>>>> 3ea2329ff2cc9c2932ec38c892cede7588e0f4e0
         }
 
 

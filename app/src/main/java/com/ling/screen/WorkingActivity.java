@@ -3,6 +3,7 @@ package com.ling.screen;
 import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -33,95 +35,104 @@ import static android.R.attr.data;
 public class WorkingActivity extends Activity{
     private static int RESULT_LOAD_IMAGE=1;
     private static final String TAG = "WorkingActivity";
-    private TouchImageView touchImg;
-    private Handler handler= new Handler();
-    private Handler handler2 = new Handler();
     Device myDevice;
-    byte [] buffer=new byte[100];
-    public DatagramSocket socket;
+    public byte [] buffer=new byte[100];;
     public DatagramPacket Package;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        touchImg = (TouchImageView)findViewById(R.id.imgView);
         setContentView(R.layout.activity_working);
 
         myDevice=Device.myDevice;
-        Log.i(TAG,"This device is server: "+MainActivity.isServer);
-        if(MainActivity.isServer){
-           /* Button button1=(Button)findViewById(R.id.button1);
-            button1.setOnClickListener(new View.OnClickListener() {
+        myDevice.touchImage = (TouchImageView)findViewById(R.id.imgView);
+
+        if(!MainActivity.isServer){
+            ((ClientDevice)myDevice).acceptFile(WorkingActivity.this);
+        }
+        else {
+           Log.i(TAG,"This device is server: "+MainActivity.isServer);
+           myDevice.serverAddr = myDevice.address;
+           Button button1=(Button)findViewById(R.id.button1);
+           button1.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent i = new Intent(
                             Intent.ACTION_PICK,
                             MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-
                     startActivityForResult(i,RESULT_LOAD_IMAGE);
                 }
-            });*/
-            try {
-                socket=new DatagramSocket(Device.CLIENT_UDP_PORT);
-                Package=new DatagramPacket(buffer,buffer.length);
-            } catch (SocketException e) {
-                e.printStackTrace();
-            }
-            handler.post(myRunnable1);
+           });
+           new Thread(new ReceiveEventThread()).start();
         }
-        handler2.postDelayed(myRunnable2,20);
+     new Thread(new SendEventThread()).start();
     }
-    private Runnable myRunnable2= new Runnable() {
-        InetAddress server_address = myDevice.serverAddr;
+    public class SendEventThread implements Runnable{
+        @Override
         public void run() {
-            try {
-                touchImg.task(server_address);
-            } catch (IOException e) {
-                e.printStackTrace();
+            while (true) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    myDevice.touchImage.task(myDevice.serverAddr);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-            handler.postDelayed(this, 20);
         }
-    };
-    private Runnable myRunnable1 = new Runnable() {
+    }
+    public class ReceiveEventThread implements Runnable{
 
         @Override
         public void run() {
-            try {
-                socket.receive(Package);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            InetAddress address = Package.getAddress();
-            Device temp_device = null;
-            Iterator <Map.Entry<InetAddress,Device>> it = ((ServerDevice)myDevice).deviceMap.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<InetAddress, Device> entry = it.next();
-                if(entry.getKey()==address){
-                    temp_device=entry.getValue();
-                    break;
+            while(true){
+                Package=new DatagramPacket(buffer,buffer.length);
+                try {
+                    myDevice.udpSocket.receive(Package);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            }
-            buffer = Package.getData();
-            ScreenEvent Sevent=new ScreenEvent(buffer,0);
-            if(Sevent.type==-1){
-                temp_device.finger_num=0;
-            }
-            else{
-                temp_device.finger_num=1;
-                temp_device.point[0]=Sevent.posX;
-                temp_device.point[1]=Sevent.posY;
-                if(Sevent.type==20){
-                    temp_device.finger_num++;
-                    Sevent=new ScreenEvent(buffer,44);
-                    temp_device.point[2]=Sevent.posX;
-                    temp_device.point[3]=Sevent.posY;
+                InetAddress address = Package.getAddress();
+                Log.i(TAG,"   Device: "+address.toString());
+                Device temp_device = null;
+                boolean flag = false;
+                Iterator <Map.Entry<InetAddress,Device>> it = ((ServerDevice)myDevice).deviceMap.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry<InetAddress, Device> entry = it.next();
+                    if(entry.getKey().toString()==address.toString()){
+                        flag=true;
+                        temp_device=entry.getValue();
+                        break;
+                    }
                 }
+                if(!flag)   temp_device=myDevice;
+                buffer = Package.getData();
+                ScreenEvent Sevent=new ScreenEvent(buffer,0);
+                Log.i(TAG,"type" + Sevent.type+"0");
+                if(Sevent.type==-1){
+                    temp_device.finger_num=0;
+                    Log.i(TAG,"finger_num 0");
+                }
+                else{
+                    temp_device.finger_num=1;
+                    Log.i(TAG,"finger_num 1");
+                    temp_device.point[0]=Sevent.posX;
+                    temp_device.point[1]=Sevent.posY;
+                    if(Sevent.type==20){
+                        temp_device.finger_num++;
+                        Sevent=new ScreenEvent(buffer,44);
+                        temp_device.point[2]=Sevent.posX;
+                        temp_device.point[3]=Sevent.posY;
+                    }
+                }
+                buffer = new byte[100];
             }
-            buffer = new byte[100];
-            handler.post(myRunnable1);
         }
-    };
+    }
 
     @Override
     protected void onActivityResult(int requestCode,int resultCode,Intent data){
@@ -139,10 +150,10 @@ public class WorkingActivity extends Activity{
             String picturePath = cursor.getString(columnIndex);
             cursor.close();
             //send;
-            touchImg = (TouchImageView) findViewById(R.id.imgView);
-            touchImg.setImageBitmap(BitmapFactory.decodeFile(picturePath));
-
-
+            myDevice.touchImage.setImageBitmap(BitmapFactory.decodeFile(picturePath));
+            Bitmap bitmap = BitmapFactory.decodeFile(picturePath);
+            ((ServerDevice)myDevice).sendFile(bitmap);
         }
     }
+
 }

@@ -38,8 +38,9 @@ public class CalibrateActivity extends Activity{
 		else{
 
 		}
-
-		infoText=(TextView)findViewById(R.id.info_text);
+		Intent calibrate = new Intent(CalibrateActivity.this, WorkingActivity.class);
+		startActivity(calibrate);
+		/*infoText=(TextView)findViewById(R.id.info_text);
 		infoText.setText("Not Calibrated");
 		
 		mainFrame=(FrameLayout)findViewById(R.id.main_frame);
@@ -49,10 +50,10 @@ public class CalibrateActivity extends Activity{
 				//Log.i(TAG,"Touch: "+ev.toString());
 				if(ev.getAction()==MotionEvent.ACTION_DOWN){
 					Coordinate deviceCoord=new Coordinate(myDevice.posX,myDevice.posY,myDevice.angle);
-					/*double x=ev.getRawX();
+					double x=ev.getRawX();
 					double y=ev.getRawY();
 					Coordinate globalCoord=(new Coordinate(x,y)).toGlobal(deviceCoord);
-					Log.i(TAG,globalCoord.toString());*/
+					Log.i(TAG,globalCoord.toString());
 					
 					ScreenEvent sev=new ScreenEvent(ev,deviceCoord);
 					byte[] buffer=new byte[44];
@@ -65,6 +66,6 @@ public class CalibrateActivity extends Activity{
 				
 				return true;
 			}
-		});
+		});*/
     }
 }
