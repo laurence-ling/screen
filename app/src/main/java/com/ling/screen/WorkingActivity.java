@@ -36,11 +36,10 @@ public class WorkingActivity extends Activity{
     private static int RESULT_LOAD_IMAGE=1;
     private static final String TAG = "WorkingActivity";
     private TouchImageView touchImg;
-    private Handler handler= new Handler();
-    private Handler handler2 = new Handler();
+    public Handler handler= new Handler();
+    public Handler handler2 = new Handler();
     Device myDevice;
-    public byte [] buffer=new byte[100];
-    public DatagramSocket socket;
+    public byte [] buffer=new byte[100];;
     public DatagramPacket Package;
     int count=0;
 
@@ -48,46 +47,49 @@ public class WorkingActivity extends Activity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        touchImg = (TouchImageView)findViewById(R.id.imgView);
         setContentView(R.layout.activity_working);
+        touchImg = (TouchImageView)findViewById(R.id.imgView);
 
         myDevice=Device.myDevice;
-        //Log.i(TAG,"This device is server: "+MainActivity.isServer);
-       // if(MainActivity.isServer){
+       if(MainActivity.isServer){
+           Log.i(TAG,"This device is server: "+MainActivity.isServer);
+           myDevice.serverAddr = myDevice.address;
            Button button1=(Button)findViewById(R.id.button1);
-            button1.setOnClickListener(new View.OnClickListener() {
+           button1.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent i = new Intent(
                             Intent.ACTION_PICK,
                             MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-
                     startActivityForResult(i,RESULT_LOAD_IMAGE);
                 }
-            });
-
-            handler.post(myRunnable1);
-        //}
-      handler2.postDelayed(myRunnable2,20);
+           });
+           new Thread(new myRunnable1()).start();
+        }
+     new Thread(new Runnable2()).start();
     }
-    private Runnable myRunnable2= new Runnable() {
-        //InetAddress server_address = myDevice.serverAddr;
+    public class Runnable2 implements Runnable{
         @Override
         public void run() {
-            try {
-              touchImg.task(myDevice.serverAddr);
-            } catch (IOException e) {
-                e.printStackTrace();
+            while (true) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    touchImg.task(myDevice.serverAddr);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-            handler2.postDelayed(this, 20);
         }
-    };
-    public Runnable myRunnable1 = new Runnable() {
+    }
+    public class myRunnable1 implements Runnable{
 
         @Override
         public void run() {
             while(true){
-
                 Package=new DatagramPacket(buffer,buffer.length);
                 try {
                     myDevice.udpSocket.receive(Package);
@@ -95,25 +97,29 @@ public class WorkingActivity extends Activity{
                     e.printStackTrace();
                 }
                 InetAddress address = Package.getAddress();
+                Log.i(TAG,"   Device: "+address.toString());
                 Device temp_device = null;
+                boolean flag = false;
                 Iterator <Map.Entry<InetAddress,Device>> it = ((ServerDevice)myDevice).deviceMap.entrySet().iterator();
                 while (it.hasNext()) {
                     Map.Entry<InetAddress, Device> entry = it.next();
-                    System.out.println("$$$$$$$$$$$$$");
-                    System.out.println("$$$$$$$$"+entry.getValue().toString());
-                    if(entry.getKey()==address){
+                    if(entry.getKey().toString()==address.toString()){
+                        flag=true;
                         temp_device=entry.getValue();
                         break;
                     }
                 }
+                if(!flag)   temp_device=myDevice;
                 buffer = Package.getData();
                 ScreenEvent Sevent=new ScreenEvent(buffer,0);
+                Log.i(TAG,"type" + Sevent.type+"0");
                 if(Sevent.type==-1){
                     temp_device.finger_num=0;
+                    Log.i(TAG,"finger_num 0");
                 }
                 else{
                     temp_device.finger_num=1;
-                    Log.v("finger_num","1");
+                    Log.i(TAG,"finger_num 1");
                     temp_device.point[0]=Sevent.posX;
                     temp_device.point[1]=Sevent.posY;
                     if(Sevent.type==20){
@@ -123,10 +129,10 @@ public class WorkingActivity extends Activity{
                         temp_device.point[3]=Sevent.posY;
                     }
                 }
-                //buffer = new byte[100];
+                buffer = new byte[100];
             }
         }
-    };
+    }
 
     @Override
     protected void onActivityResult(int requestCode,int resultCode,Intent data){

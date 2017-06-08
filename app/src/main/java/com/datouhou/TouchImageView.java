@@ -30,7 +30,7 @@ import java.util.TimerTask;
  *
  */
 public class TouchImageView extends android.support.v7.widget.AppCompatImageView{
-    //private final static String TAG="MatrixImageView";
+    private final static String TAG="MatrixImageView";
     private GestureDetector mGestureDetector;
     private double point[]=new double[4];
     private int finger_count=0;
@@ -88,6 +88,9 @@ public class TouchImageView extends android.support.v7.widget.AppCompatImageView
                 ScreenEvent Sevent = new ScreenEvent(-1,point[0],point[1]);
                 Sevent.writeEventBuffer(buffer,0);
             }
+        if(server_address==null){
+            Log.i(TAG,"null address");
+        }
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length,server_address, Device.CLIENT_UDP_PORT);
         socket.send(packet);
         buffer = new byte[100];
