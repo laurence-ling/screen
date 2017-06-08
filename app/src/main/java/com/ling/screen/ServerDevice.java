@@ -141,6 +141,7 @@ public class ServerDevice extends Device{
         int bytes = bitmap.getByteCount();
         ByteBuffer buffer = ByteBuffer.allocate(bytes);
         bitmap.copyPixelsToBuffer(buffer);
+        Log.i(TAG, "bitmap bytes " + bytes);
         new Thread(new SendFileThread(buffer.array())).start();
     }
 
@@ -156,6 +157,7 @@ public class ServerDevice extends Device{
                     if (address == clientAddr)
                         continue; // server self
                     Socket socket = new Socket(clientAddr, CLIENT_TCP_PORT);
+                    Log.i(TAG, "connect client successfully");
                     DataOutputStream oStream = new DataOutputStream(socket.getOutputStream());
                     oStream.write(buffer);
                     socket.close();
