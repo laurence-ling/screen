@@ -20,7 +20,9 @@ public class Device implements Serializable{
     
     double posX=0, posY=0, angle=0; // global coord (mm,mm,rad_CW)
     double deltaT=0;
-    
+
+    int finger_num=0;
+    double point[]=new double[4];
     InetAddress father=null; // your present daddy when calibrating
     
     public static double scr_width, scr_height; // in mm

@@ -28,6 +28,15 @@ public class ScreenEvent{
 		velX=0;
 		velY=0;
 	}
+
+	public ScreenEvent(int Type, double x ,double y){
+		type=Type;
+		timestamp=0;
+		posX=x;
+		posY=y;
+		velX=0;
+		velY=0;
+	}
 	
 	// Manually construct a ScreenEvent
 	public ScreenEvent(int type_,long timestamp_,double posX_,double posY_,double velX_,double velY_){

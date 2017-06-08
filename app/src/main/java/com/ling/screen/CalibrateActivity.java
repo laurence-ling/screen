@@ -3,12 +3,14 @@ package com.ling.screen;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import java.util.Timer;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import com.datouhou.TouchImageView;
 import com.iraka.widget.Coordinate;
 import com.iraka.widget.ScreenEvent;
 
@@ -33,7 +35,10 @@ public class CalibrateActivity extends Activity{
 		if(MainActivity.isServer){
 			((ServerDevice)myDevice).printInfo();
 		}
-		
+		else{
+
+		}
+
 		infoText=(TextView)findViewById(R.id.info_text);
 		infoText.setText("Not Calibrated");
 		
