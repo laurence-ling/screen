@@ -2,19 +2,22 @@ package com.ling.screen;
 
 
 import android.graphics.Bitmap;
-import android.util.Log;
-
-import com.datouhou.TouchImageView;
 import android.os.Message;
 import android.os.SystemClock;
 import android.util.Log;
 
+import com.datouhou.TouchImageView;
 import com.iraka.widget.Coordinate;
 import com.iraka.widget.ScreenEvent;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.net.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.List;
 
 /**
@@ -34,7 +37,7 @@ public class Device implements Serializable{
 
     Bitmap bitmap;
     TouchImageView touchImage;
-    double posX=0, posY=0, angle=0; // global coord (mm,mm,rad_CW)
+    public double posX=0, posY=0, angle=0; // global coord (mm,mm,rad_CW)
     public int finger_num=0;
     public double point[]=new double[4];
 

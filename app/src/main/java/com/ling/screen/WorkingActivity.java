@@ -36,6 +36,8 @@ public class WorkingActivity extends Activity{
     private static final String TAG = "WorkingActivity";
     Device myDevice;
     Device temp_device;
+    Bitmap tempBitmap;
+    Matrix matrix;
     ScreenEvent screenEvent;
     public byte [] buffer=new byte[100];;
     public DatagramPacket Package;
@@ -47,6 +49,7 @@ public class WorkingActivity extends Activity{
         setContentView(R.layout.activity_working);
         Log.i(TAG,"working activity start");
         myDevice=Device.myDevice;
+        matrix = new Matrix();
         myDevice.touchImage = (TouchImageView)findViewById(R.id.imgView);
         openPicBtn = (Button)findViewById(R.id.button1);
         if(!MainActivity.isServer){
@@ -156,22 +159,32 @@ public class WorkingActivity extends Activity{
     }
     public void showPic(){
         Log.i(TAG, "in showPicThread");
-        Matrix matrix = new Matrix();
+
         if(screenEvent.type == 1){
             Log.i(TAG, "screenEvent type 1");
-            matrix.setTranslate((float)screenEvent.posX, (float)screenEvent.posY);
+            //matrix.postTranslate(0.5f, 0.5f);
+            Coordinate coord = new Coordinate(screenEvent.posX, screenEvent.posY).toLocal2(myDevice);
+            double dx = coord.x * Device.ppmX;
+            double dy = coord.y * Device.ppmY;
+            Log.i(TAG, "transdx"+dx+" transdy" + dy);
+            matrix.postTranslate((float)dx, (float)dy);
         }
         else if(screenEvent.type == 2){
             Log.i(TAG, "screenEvent type 2");
             float px = (float)(temp_device.point[0] + temp_device.point[2])/2;
             float py = (float)(temp_device.point[1] + temp_device.point[3])/2;
-            matrix.setTranslate((float)screenEvent.posX, (float)screenEvent.posY);
+            //matrix.postTranslate((float)screenEvent.posX, (float)screenEvent.posY);
+            Coordinate coord = new Coordinate(screenEvent.posX, screenEvent.posY).toLocal2(myDevice);
+            double dx = coord.x * Device.ppmX;
+            double dy = coord.y * Device.ppmY;
+            Log.i(TAG, "transdx"+dx+" transdy" + dy);
+            matrix.postTranslate((float)dx, (float)dy);
             matrix.postRotate((float)screenEvent.velY, px, py);
             matrix.postScale((float)screenEvent.velX, (float)screenEvent.velX, px, py);
         } else {
             return;
         }
-        myDevice.bitmap = Bitmap.createBitmap(myDevice.bitmap, 0, 0, myDevice.bitmap.getWidth(), myDevice.bitmap.getHeight(), matrix, true);
+        tempBitmap = Bitmap.createBitmap(myDevice.bitmap, 0, 0, myDevice.bitmap.getWidth(), myDevice.bitmap.getHeight(), matrix, true);
         Message msg = new Message();
         msg.what = 1;
         handler.sendMessage(msg);
@@ -206,7 +219,7 @@ public class WorkingActivity extends Activity{
         public void handleMessage(Message msg) {
             if (msg.what == 1) { // client receive image file
                 Log.i(TAG, "handle Message");
-                myDevice.touchImage.setImageBitmap(myDevice.bitmap);
+                myDevice.touchImage.setImageBitmap(tempBitmap);
             }
         }
     };
