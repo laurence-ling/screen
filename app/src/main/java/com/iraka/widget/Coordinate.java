@@ -67,11 +67,10 @@ public class Coordinate{
 		return new Coordinate(x_lc,y_lc,a_lc);
 	}
 	public Coordinate toLocal2(Device device){
-		double p = Math.sqrt((x * x) + (y * y));
-		double q = Math.atan(y/x);
+		double p = Math.hypot(x,y);
+		double q = Math.atan2(y,x);
 		q = q - device.angle;
-		Coordinate coord = new Coordinate(p * Math.cos(q), p * Math.sin(q));
-		return coord;
+		return new Coordinate(p * Math.cos(q), p * Math.sin(q));
 	}
 	@Override
 	public String toString(){
