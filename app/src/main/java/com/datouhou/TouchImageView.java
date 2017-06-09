@@ -2,12 +2,19 @@ package com.datouhou;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 
 import com.iraka.widget.Coordinate;
@@ -26,8 +33,36 @@ import java.net.SocketException;
  * @date 2017-06-07
  *
  */
-public class TouchImageView extends android.support.v7.widget.AppCompatImageView{
-    //private final static String TAG="MatrixImageView";
+public class TouchImageView extends SurfaceView implements SurfaceHolder.Callback{
+    private final static String TAG="MatrixImageView";
+    
+    private SurfaceHolder holder;
+    @Override
+    public void surfaceCreated(SurfaceHolder holder){}
+    @Override
+    public void surfaceChanged(SurfaceHolder holder,int format,int width,int height){}
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder){}
+    
+    private static Paint paint=new Paint();
+    private Rect bgRect;
+    private Matrix lastMatrix=new Matrix();
+    private boolean firstBitmapDrawn=false;
+    public void setImageBitmap(Bitmap bitmap,Matrix matrix){
+        //Log.i(TAG,"Draw BG");
+        if(firstBitmapDrawn&&matrix.equals(lastMatrix)){
+            Log.i(TAG,"Not Changed");
+            return;
+        }
+        lastMatrix.set(matrix);
+        Canvas canvas=holder.lockCanvas();
+        if(canvas==null)return;
+        firstBitmapDrawn=true;
+        canvas.drawRect(bgRect,paint);
+        canvas.drawBitmap(bitmap,matrix,paint);
+        holder.unlockCanvasAndPost(canvas);
+    }
+    
     private GestureDetector mGestureDetector;
     private double point[]=new double[4];
     private int finger_count=0;
@@ -35,15 +70,22 @@ public class TouchImageView extends android.support.v7.widget.AppCompatImageView
     DatagramSocket socket = new DatagramSocket();
     public TouchImageView(Context context, AttributeSet attrs) throws SocketException {
         super(context, attrs);
+        holder=getHolder();
+        holder.addCallback(this);
+        holder.setFormat(PixelFormat.TRANSLUCENT);
+        setZOrderOnTop(true);
+        paint.setARGB(255,0,0,0);
+        
         MatrixTouchListener mListener=new MatrixTouchListener();
         setOnTouchListener(mListener);
         mGestureDetector=new GestureDetector(getContext(), new GestureListener(mListener));
-        //背景设置为balck
-        //setBackgroundColor(Color.BLACK);
-        //将缩放类型设置为FIT_CENTER，表示把图片按比例扩大/缩小到View的宽度，居中显示
-        setScaleType(ScaleType.FIT_CENTER);
     }
-
+    
+    public void onWindowFocusChanged(boolean hasFocus){
+        super.onWindowFocusChanged(hasFocus);
+        bgRect=new Rect(0,0,getWidth(),getHeight());
+    }
+    
     public class MatrixTouchListener implements OnTouchListener{
         @Override
         public boolean onTouch(View v, MotionEvent event) {

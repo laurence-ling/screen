@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -203,15 +204,14 @@ public class WorkingActivity extends Activity{
             openPicBtn.setVisibility(View.GONE);
         }
     }
-    public static Paint paint = new Paint();
+    //public static Paint paint = new Paint();
     public void setImage(Bitmap bitmap, Matrix matrix_){
         if(myDevice.touchImage.getWidth()==0||myDevice.touchImage.getHeight()==0||bitmap==null)return;
-        Bitmap background = Bitmap.createBitmap(myDevice.touchImage.getWidth(), myDevice.touchImage.getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(background);
-        canvas.drawBitmap(bitmap, matrix_, paint);
-        //paint.setARGB(255,0,0,255);
-        //canvas.drawCircle(100,100,50,paint);
-        myDevice.touchImage.setImageBitmap(background);
+        //Bitmap background = Bitmap.createBitmap(myDevice.touchImage.getWidth(), myDevice.touchImage.getHeight(), Bitmap.Config.ARGB_8888);
+        //Canvas canvas = new Canvas(background);
+        //canvas.drawBitmap(bitmap, matrix_, paint); // at most 80ms
+    
+        myDevice.touchImage.setImageBitmap(bitmap,matrix_);
 
     }
     public Handler handler=new Handler() {
@@ -220,7 +220,10 @@ public class WorkingActivity extends Activity{
             if (msg.what == 1) { // client receive image file
                 Log.w(TAG, "Matrix = "+matrix);
                 //myDevice.touchImage.setImageBitmap(tempBitmap);
+                long startT=SystemClock.uptimeMillis();
                 setImage(myDevice.bitmap, matrix);
+                long endT=SystemClock.uptimeMillis();
+                Log.i(TAG,"set_time = "+(endT-startT)+" ms");
             }
         }
     };
