@@ -149,9 +149,10 @@ public class ClientDevice extends Device {
                 DatagramPacket recvPacket = new DatagramPacket(buf, buf.length);
                 try{
                     wkAcitivity.myDevice.udpSocket.receive(recvPacket);
-                    ScreenEvent event = new ScreenEvent(recvPacket.getData(), 0);
+                    wkAcitivity.screenEvent = new ScreenEvent(recvPacket.getData(), 0);
                     Log.i(TAG, "receive data " + recvPacket.getLength() + "bytes");
-                    wkAcitivity.screenEvent = event;
+                    wkAcitivity.midEvent = new ScreenEvent(recvPacket.getData(),44);
+
                 } catch(IOException e){
                     Log.e(TAG, "", e);
                 }

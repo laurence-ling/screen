@@ -45,6 +45,7 @@ public class WorkingActivity extends Activity{
     //Bitmap tempBitmap;
     Matrix matrix;
     ScreenEvent screenEvent;
+    ScreenEvent midEvent;
     public byte [] buffer=new byte[100];;
     //public DatagramPacket Package;
     Button openPicBtn;
@@ -118,6 +119,8 @@ public class WorkingActivity extends Activity{
                 double py = (float)(temp_device.point[1] + temp_device.point[3])/2;
                 byte[] eventBuf = new byte[128];
                 screenEvent.writeEventBuffer(eventBuf, 0);
+                ScreenEvent mid_screenEvent = new ScreenEvent(0,px,py);
+                mid_screenEvent.writeEventBuffer(eventBuf,44);
                 ((ServerDevice)myDevice).sendEventToClient(eventBuf);
                 showPic(px, py);
             }
@@ -230,7 +233,7 @@ public class WorkingActivity extends Activity{
             else if (msg.what == 2){ // client receive screen event
                 Log.w(TAG, "client received screen event " + screenEvent.toString());
                 temp_device = myDevice;
-                //showPic();
+                showPic(midEvent.posX,midEvent.posY);
             }
         }
     };
