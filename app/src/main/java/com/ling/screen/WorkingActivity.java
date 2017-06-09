@@ -61,6 +61,7 @@ public class WorkingActivity extends Activity{
         if(!MainActivity.isServer){
             openPicBtn.setVisibility(View.GONE);
             ((ClientDevice)myDevice).acceptFile(WorkingActivity.this);
+            ((ClientDevice)myDevice).receiveServerEvent(WorkingActivity.this);
         }
         else {
            Log.i(TAG,"This device is server: "+MainActivity.isServer);
@@ -113,6 +114,9 @@ public class WorkingActivity extends Activity{
 
                 changepic.myrun();
                 screenEvent = changepic.screenEvent;
+                byte[] eventBuf = new byte[128];
+                screenEvent.writeEventBuffer(eventBuf, 0);
+                ((ServerDevice)myDevice).sendEventToClient(eventBuf);
                 showPic();
             }
         }
@@ -236,6 +240,10 @@ public class WorkingActivity extends Activity{
                 Log.w(TAG, "handle Message");
                 //myDevice.touchImage.setImageBitmap(tempBitmap);
                 setImage(myDevice.bitmap, matrix);
+            }
+            else if (msg.what == 2){ // client receive screen event
+                Log.w(TAG, "client received screen event");
+                showPic();
             }
         }
     };

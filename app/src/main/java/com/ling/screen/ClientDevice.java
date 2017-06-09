@@ -9,6 +9,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.datouhou.TouchImageView;
+import com.iraka.widget.ScreenEvent;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -129,6 +130,30 @@ public class ClientDevice extends Device {
                 }catch (IOException e) {
                     Log.e(TAG, "connect server error", e);
                 }
+            }
+        }
+    }
+    public void receiveServerEvent(WorkingActivity _wkActivity){
+        wkAcitivity = _wkActivity;
+        new Thread(new ReceiveServerEventThread()).start();
+
+    }
+    class ReceiveServerEventThread implements Runnable{
+        @Override
+        public void run(){
+            while(true) {
+                byte[] buf = new byte[128];
+                DatagramPacket recvPacket = new DatagramPacket(buf, buf.length);
+                try{
+                    udpSocket.receive(recvPacket);
+                    ScreenEvent event = new ScreenEvent(recvPacket.getData(), 0);
+                    wkAcitivity.screenEvent = event;
+                } catch(IOException e){
+                    Log.e(TAG, "", e);
+                }
+                Message msg = new Message();
+                msg.what = 2;
+                wkAcitivity.handler.sendMessage(msg);
             }
         }
     }
