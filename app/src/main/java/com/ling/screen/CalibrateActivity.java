@@ -127,6 +127,8 @@ public class CalibrateActivity extends Activity{
 			if(msg.what==3){ // Calibration Complete
 				infoText.setBackgroundColor(Color.parseColor("#FF8000"));
 				infoText.setText(new Coordinate(myDevice.posX,myDevice.posY,myDevice.angle).toString());
+				Intent wkIntent = new Intent(CalibrateActivity.this, WorkingActivity.class);
+				CalibrateActivity.this.startActivity(wkIntent);
 			}
 		}
 	};

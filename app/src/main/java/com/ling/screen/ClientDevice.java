@@ -98,7 +98,7 @@ public class ClientDevice extends Device {
         DatagramPacket sendPacket;
         DatagramPacket recvPacket;
         InetSocketAddress saddr;
-        int round = 10;
+        int round = 3;
         public ConnectServerThread(InetSocketAddress addr){
             saddr = addr;
         }
@@ -107,7 +107,7 @@ public class ClientDevice extends Device {
             byte[] buf = new byte[100];
             recvPacket = new DatagramPacket(buf, buf.length);
             String msg = "2@";
-            while (round-- > 0) { // try sending 10 times
+            while (round-- > 0 && status == Device.WAITING_STATUS) { // try sending 10 times
                 try {
                     sendPacket = new DatagramPacket(msg.getBytes(), msg.length(), saddr);
                     udpSocket.send(sendPacket);
