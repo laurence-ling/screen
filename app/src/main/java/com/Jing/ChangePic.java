@@ -49,10 +49,10 @@ public class ChangePic {
             temp_device = entry.getValue();
             InetAddress address = entry.getKey();
             Log.i(TAG,address.toString());
+            Log.w("TIVIS","Addr "+address+" has "+temp_device.finger_num+" fingers");
             if (temp_device.finger_num == 1) {
-                finger_num_new=1;
-
                 if (point1) {
+                    finger_num_new=1;
                     point_new[0] = temp_device.point[0];
                     point_new[1] = temp_device.point[1];
                     point1 = false;
@@ -71,7 +71,9 @@ public class ChangePic {
                 break;
             }
         }
-
+    
+        Log.w("TIVIS","cnt="+finger_num_new+" f0 = ("+point_new[0]+","+point_new[1]
+        +") f1 = ("+point_new[2]+","+point_new[3]+")");
     }
 
     public void setScreenInfo(Device server) {
@@ -94,35 +96,35 @@ public class ChangePic {
     }
 
     public double Dis(double x1, double y1, double x2, double y2) {
-        return Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+        return Math.hypot(x1 - x2,y1 - y2);
     }
 
     public double Dis2(Pos pos1, Pos pos2) {
-        return Math.sqrt((pos1.x - pos2.x) * (pos1.x - pos2.x) + (pos1.y - pos2.y) * (pos1.y - pos2.y));
+        return Math.hypot(pos1.x - pos2.x,pos1.y - pos2.y);
     }
 
     public Pos midPos(Pos pos1, Pos pos2) {
         double x = (pos1.x + pos2.x) / 2;
         double y = (pos1.y + pos2.y) / 2;
-        Pos res = new Pos(x, y);
-        return res;
+        return new Pos(x, y);
     }
 
     public void myrun() {
         Log.i(TAG, "start to change pic");
         finger_num_new=0;
         getScreenInfo();
+        //Log.w("TIVIV","finger_num_new="+finger_num_new+" finger_num_old="+finger_num_old);
+        
         Log.i(TAG, "start to change pic");
-        Log.i(TAG,"finger_num_new"+("0"+finger_num_new));
-        Log.i(TAG,"finger_num_old"+("0"+finger_num_old));
+        Log.i(TAG,"finger_num_new "+finger_num_new+": ("+point_new[0]+","+point_new[1]+")~("+point_new[2]+","+point_new[3]+")");
+        Log.i(TAG,"finger_num_old "+finger_num_old+": ("+point_old[0]+","+point_old[1]+")~("+point_old[2]+","+point_old[3]+")");
+    
+        
         if (finger_num_new == 1 && finger_num_old == 1)         //一个手指在屏幕上
         {
-            if (!(point_new[0] == point_old[0] && point_new[1] == point_old[1]))         //两次位置不同，平移
-            {
-                double transX = point_new[0] - point_old[0];
-                double transY = point_new[1] - point_old[1];
-                screenEvent = new ScreenEvent(1, transX, transY);
-            }
+            double transX = point_new[0] - point_old[0];
+            double transY = point_new[1] - point_old[1];
+            screenEvent = new ScreenEvent(0,0, transX, transY,0,1);
         } else if (finger_num_new == 2 && finger_num_old == 2) {
             Pos posA = new Pos(point_old[0], point_old[1]);
             Pos posB = new Pos(point_old[2], point_old[3]);
@@ -138,20 +140,19 @@ public class ChangePic {
                 posAA = new Pos(point_new[2], point_new[3]);
                 posBB = new Pos(point_new[0], point_new[1]);
             }
-            if (!(posA.x == posAA.x && posA.y == posAA.y && posB.x == posBB.x && posB.y == posBB.y)) {
-                Pos mid1 = midPos(posA, posB);
-                Pos mid2 = midPos(posAA, posBB);
-                double scale = Dis2(posAA, posBB) / Dis2(posA, posB);
-                double k1 = (posA.y - posB.y) / (posA.x - posB.x);
-                double k2 = (posAA.y - posBB.y) / (posAA.x - posBB.x);
-                double angle = Math.atan2((k2 - k1), (1 + k1 * k2));
-                long t = System.currentTimeMillis();
-                screenEvent = new ScreenEvent(2, t, mid2.x - mid1.x, mid2.y - mid1.y, scale, angle);
-            }
+            
+            Pos mid1 = midPos(posA, posB);
+            Pos mid2 = midPos(posAA, posBB);
+            double scale = Dis2(posAA, posBB) / Dis2(posA, posB);
+            double ang1 = Math.atan2(posA.y - posB.y, posA.x - posB.x);
+            double ang2 = Math.atan2(posAA.y - posBB.y, posAA.x - posBB.x);
+            double angle = ang1-ang2;
+            //long t = System.currentTimeMillis();
+            screenEvent = new ScreenEvent(0, 0, mid2.x - mid1.x, mid2.y - mid1.y, angle, scale);
         } else
-            screenEvent = new ScreenEvent(3, point_old[0], point_old[1]);
+            screenEvent = new ScreenEvent(0,0,0,0,0,1);
         setScreenInfo(serverDevice);
-
-        Log.i(TAG, screenEvent.toString());
+        
+        Log.w("TIVIK", "Scale="+screenEvent.velY);
     }
 }

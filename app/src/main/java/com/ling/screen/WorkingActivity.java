@@ -46,7 +46,7 @@ public class WorkingActivity extends Activity{
     Matrix matrix;
     ScreenEvent screenEvent;
     public byte [] buffer=new byte[100];;
-    public DatagramPacket Package;
+    //public DatagramPacket Package;
     Button openPicBtn;
 
     @Override
@@ -89,7 +89,7 @@ public class WorkingActivity extends Activity{
                     e.printStackTrace();
                 }
                 try {
-                    myDevice.touchImage.task(myDevice.serverAddr);
+                    myDevice.touchImage.task(myDevice.serverAddr,new Coordinate(myDevice.posX,myDevice.posY,myDevice.angle));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -103,13 +103,13 @@ public class WorkingActivity extends Activity{
             ChangePic changepic = new ChangePic(myDevice);
             while(true){
                 byte[] buffer = new byte[100];
-                Package=new DatagramPacket(buffer, buffer.length);
+                DatagramPacket pack=new DatagramPacket(buffer, buffer.length);
                 try {
-                    myDevice.udpSocket.receive(Package);
+                    myDevice.udpSocket.receive(pack);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                genEvent();
+                genEvent(pack);
 
                 changepic.myrun();
                 screenEvent = changepic.screenEvent;
@@ -117,26 +117,20 @@ public class WorkingActivity extends Activity{
             }
         }
     }
-     public void genEvent(){
-         InetAddress address = Package.getAddress();
+     public void genEvent(DatagramPacket pack){
+         InetAddress address = pack.getAddress();
         //Log.i(TAG,"   Device: "+address.toString());
-        temp_device = null;
-        boolean flag = false;
-        Iterator <Map.Entry<InetAddress,Device>> it = ((ServerDevice)myDevice).deviceMap.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<InetAddress, Device> entry = it.next();
-            if(entry.getKey().toString()==address.toString()){
-                flag=true;
-                temp_device=entry.getValue();
-                break;
-            }
+        temp_device=((ServerDevice)myDevice).deviceMap.get(address);
+        
+        if(temp_device==null){
+            Log.w("TIVIV","Not Found, "+address);
+            temp_device=myDevice;
         }
-        if(!flag)   temp_device=myDevice;
-        buffer = Package.getData();
+        buffer = pack.getData();
         ScreenEvent Sevent=new ScreenEvent(buffer,0);
 
-        Coordinate deviceCoord=new Coordinate(myDevice.posX,myDevice.posY,myDevice.angle);
-        Log.i(TAG,"type" + Sevent.type+"0");
+        
+        Log.i("ISJDI",address+" type " + Sevent.type+" 0");
 
         if(Sevent.type==-1){
             temp_device.finger_num=0;
@@ -148,48 +142,37 @@ public class WorkingActivity extends Activity{
             double x = Sevent.posX;
             double y = Sevent.posY;
             Log.i(TAG,"x:"+x+"  y:"+y);
-            Coordinate globalCoord = (new Coordinate(x, y)).toGlobal(deviceCoord);
-            temp_device.point[0] = globalCoord.x;
-            temp_device.point[1] = globalCoord.y;
+            temp_device.point[0] = x;
+            temp_device.point[1] = y;
             if (Sevent.type == 20) {
                 Log.i(TAG, "finger_num 2");
                 temp_device.finger_num++;
                 Sevent = new ScreenEvent(buffer, 44);
                 x = Sevent.posX;
                 y = Sevent.posY;
-                globalCoord = (new Coordinate(x, y)).toGlobal(deviceCoord);
-                temp_device.point[2] = globalCoord.x;
-                temp_device.point[3] = globalCoord.y;
+                temp_device.point[2] = x;
+                temp_device.point[3] = y;
             }
         }
+    
+         Log.w("TIVIV","cnt="+temp_device.finger_num+" f0 = ("+temp_device.point[0]+","+temp_device.point[1]
+         +") f1 = ("+temp_device.point[2]+","+temp_device.point[3]+")");
     }
     public void showPic(){
         Log.i(TAG, "in showPicThread");
-
-        if(screenEvent.type == 1){
-            Log.i(TAG, "screenEvent type 1");
-            //matrix.postTranslate(0.5f, 0.5f);
-            Coordinate coord = new Coordinate(screenEvent.posX, screenEvent.posY).toLocal2(myDevice);
-            double dx = coord.x * Device.ppmX;
-            double dy = coord.y * Device.ppmY;
-            Log.i(TAG, "transdx"+dx+" transdy" + dy);
-            matrix.postTranslate((float)dx, (float)dy);
-        }
-        else if(screenEvent.type == 2){
-            Log.i(TAG, "screenEvent type 2");
-            float px = (float)(temp_device.point[0] + temp_device.point[2])/2;
-            float py = (float)(temp_device.point[1] + temp_device.point[3])/2;
-            //matrix.postTranslate((float)screenEvent.posX, (float)screenEvent.posY);
-            Coordinate coord = new Coordinate(screenEvent.posX, screenEvent.posY).toLocal2(myDevice);
-            double dx = coord.x * Device.ppmX;
-            double dy = coord.y * Device.ppmY;
-            Log.i(TAG, "transdx"+dx+" transdy" + dy);
-            matrix.postTranslate((float)dx, (float)dy);
-            matrix.postRotate((float)screenEvent.velY, px, py);
-            matrix.postScale((float)screenEvent.velX, (float)screenEvent.velX, px, py);
-        } else {
-            return;
-        }
+        
+        double px = (float)(temp_device.point[0] + temp_device.point[2])/2;
+        double py = (float)(temp_device.point[1] + temp_device.point[3])/2;
+        //matrix.postTranslate((float)screenEvent.posX, (float)screenEvent.posY);
+        Coordinate coord = new Coordinate(screenEvent.posX, screenEvent.posY).toLocal2(myDevice);
+        Coordinate midCoord = new Coordinate(px, py).toLocal(new Coordinate(myDevice.posX,myDevice.posY,myDevice.angle));
+        double dx = coord.x * Device.ppmX;
+        double dy = coord.y * Device.ppmY;
+        Log.i(TAG, "transdx"+dx+" transdy" + dy);
+        matrix.postTranslate((float)dx, (float)dy);
+        matrix.postRotate((float)(-screenEvent.velX/Math.PI*180), (float)midCoord.x, (float)midCoord.y);
+        matrix.postScale((float)screenEvent.velY, (float)screenEvent.velY, (float)midCoord.x, (float)midCoord.y);
+        
         //tempBitmap = Bitmap.createBitmap(myDevice.bitmap, 0, 0, myDevice.bitmap.getWidth(), myDevice.bitmap.getHeight(), matrix, true);
         Message msg = new Message();
         msg.what = 1;
@@ -221,11 +204,13 @@ public class WorkingActivity extends Activity{
         }
     }
     public static Paint paint = new Paint();
-    public void setImage(Bitmap bitmap, Matrix _matrix){
+    public void setImage(Bitmap bitmap, Matrix matrix_){
+        if(myDevice.touchImage.getWidth()==0||myDevice.touchImage.getHeight()==0||bitmap==null)return;
         Bitmap background = Bitmap.createBitmap(myDevice.touchImage.getWidth(), myDevice.touchImage.getHeight(), Bitmap.Config.ARGB_8888);
-        Log.w(TAG, myDevice.touchImage.getWidth()+" width " + myDevice.touchImage.getHeight());
         Canvas canvas = new Canvas(background);
-        canvas.drawBitmap(bitmap, _matrix, paint);
+        canvas.drawBitmap(bitmap, matrix_, paint);
+        //paint.setARGB(255,0,0,255);
+        //canvas.drawCircle(100,100,50,paint);
         myDevice.touchImage.setImageBitmap(background);
 
     }
@@ -233,7 +218,7 @@ public class WorkingActivity extends Activity{
         @Override
         public void handleMessage(Message msg) {
             if (msg.what == 1) { // client receive image file
-                Log.w(TAG, "handle Message");
+                Log.w(TAG, "Matrix = "+matrix);
                 //myDevice.touchImage.setImageBitmap(tempBitmap);
                 setImage(myDevice.bitmap, matrix);
             }
