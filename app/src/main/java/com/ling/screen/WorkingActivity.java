@@ -89,88 +89,73 @@ public class WorkingActivity extends Activity{
             }
         }
     }
-    public class ReceiveEventThread implements Runnable{
 
+    public class ReceiveEventThread implements Runnable{
         @Override
         public void run() {
             ChangePic changepic = new ChangePic(myDevice);
             while(true){
-
-                Package=new DatagramPacket(buffer,buffer.length);
+                byte[] buffer = new byte[100];
+                Package=new DatagramPacket(buffer, buffer.length);
                 try {
                     myDevice.udpSocket.receive(Package);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                InetAddress address = Package.getAddress();
-                //Log.i(TAG,"   Device: "+address.toString());
-                temp_device = null;
-                boolean flag = false;
-                Iterator <Map.Entry<InetAddress,Device>> it = ((ServerDevice)myDevice).deviceMap.entrySet().iterator();
-                while (it.hasNext()) {
-                    Map.Entry<InetAddress, Device> entry = it.next();
-                    if(entry.getKey().toString()==address.toString()){
-                        flag=true;
-                        temp_device=entry.getValue();
-                        break;
-                    }
-                }
-                if(!flag)   temp_device=myDevice;
-                buffer = Package.getData();
-                ScreenEvent Sevent=new ScreenEvent(buffer,0);
+                genEvent();
+                
+                changepic.myrun();
+                screenEvent = changepic.screenEvent;
+                showPic();
+            }
+        }
+    }
+     public void genEvent(){
+         InetAddress address = Package.getAddress();
+        //Log.i(TAG,"   Device: "+address.toString());
+        temp_device = null;
+        boolean flag = false;
+        Iterator <Map.Entry<InetAddress,Device>> it = ((ServerDevice)myDevice).deviceMap.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<InetAddress, Device> entry = it.next();
+            if(entry.getKey().toString()==address.toString()){
+                flag=true;
+                temp_device=entry.getValue();
+                break;
+            }
+        }
+        if(!flag)   temp_device=myDevice;
+        buffer = Package.getData();
+        ScreenEvent Sevent=new ScreenEvent(buffer,0);
 
-                Coordinate deviceCoord=new Coordinate(myDevice.posX,myDevice.posY,myDevice.angle);
-                Log.i(TAG,"type" + Sevent.type+"0");
+        Coordinate deviceCoord=new Coordinate(myDevice.posX,myDevice.posY,myDevice.angle);
+        Log.i(TAG,"type" + Sevent.type+"0");
 
-                if(Sevent.type==-1){
-                    temp_device.finger_num=0;
-                    Log.i(TAG,"finger_num 0");
-                }
-                else{
-                    temp_device.finger_num=1;
-                    Log.i(TAG,"finger_num 1");
-                    double x = Sevent.posX;
-                    double y = Sevent.posY;
-                    Coordinate globalCoord=(new Coordinate(x,y)).toGlobal(deviceCoord);
-                    temp_device.point[0]=globalCoord.x;
-                    temp_device.point[1]=globalCoord.y;
-                    if(Sevent.type==20){
-                        Log.i(TAG,"finger_num 2");
-                        temp_device.finger_num++;
-                        Sevent=new ScreenEvent(buffer,44);
-                        x = Sevent.posX;
-                        y = Sevent.posY;
-                        globalCoord=(new Coordinate(x,y)).toGlobal(deviceCoord);
-                        temp_device.point[2]=globalCoord.x;
-                        temp_device.point[3]=globalCoord.y;
-                    }
-                    changepic.myrun();
-                    screenEvent = changepic.screenEvent;
-                    showPic();
-                    /*
-                    ChangePic changepic = new ChangePic(myDevice, temp_device);
-                    ScreenEvent screenEvent = changepic.screenEvent;
-                    Matrix matrix = new Matrix();
-                    if(screenEvent.type == 1){
-                        matrix.setTranslate((float)screenEvent.posX, (float)screenEvent.posY);
-                    }
-                    else if(screenEvent.type == 2){
-                        float px = (float)(temp_device.point[0] + temp_device.point[2])/2;
-                        float py = (float)(temp_device.point[1] + temp_device.point[3])/2;
-                        matrix.setTranslate((float)screenEvent.posX, (float)screenEvent.posY);
-                        matrix.setRotate((float)screenEvent.velY, px, py);
-                        matrix.setScale((float)screenEvent.velX, (float)screenEvent.velX, px, py);
-                    }
-                    Bitmap tempBitmap = Bitmap.createBitmap(myDevice.bitmap, 0, 0, (int)myDevice.scr_width, (int)myDevice.scr_height, matrix, true);
-                    myDevice.touchImage.setImageBitmap(tempBitmap);
-                    */
-                }
-                buffer = new byte[100];
+        if(Sevent.type==-1){
+            temp_device.finger_num=0;
+            Log.i(TAG,"finger_num 0");
+        }
+        else {
+            temp_device.finger_num = 1;
+            Log.i(TAG, "finger_num 1");
+            double x = Sevent.posX;
+            double y = Sevent.posY;
+            Coordinate globalCoord = (new Coordinate(x, y)).toGlobal(deviceCoord);
+            temp_device.point[0] = globalCoord.x;
+            temp_device.point[1] = globalCoord.y;
+            if (Sevent.type == 20) {
+                Log.i(TAG, "finger_num 2");
+                temp_device.finger_num++;
+                Sevent = new ScreenEvent(buffer, 44);
+                x = Sevent.posX;
+                y = Sevent.posY;
+                globalCoord = (new Coordinate(x, y)).toGlobal(deviceCoord);
+                temp_device.point[2] = globalCoord.x;
+                temp_device.point[3] = globalCoord.y;
             }
         }
     }
     public void showPic(){
-
         Log.i(TAG, "in showPicThread");
         Matrix matrix = new Matrix();
         if(screenEvent.type == 1){
@@ -184,9 +169,9 @@ public class WorkingActivity extends Activity{
             matrix.setTranslate((float)screenEvent.posX, (float)screenEvent.posY);
             matrix.postRotate((float)screenEvent.velY, px, py);
             matrix.postScale((float)screenEvent.velX, (float)screenEvent.velX, px, py);
-        }
-        else
+        } else {
             return;
+        }
         myDevice.bitmap = Bitmap.createBitmap(myDevice.bitmap, 0, 0, myDevice.bitmap.getWidth(), myDevice.bitmap.getHeight(), matrix, true);
         Message msg = new Message();
         msg.what = 1;
@@ -213,7 +198,7 @@ public class WorkingActivity extends Activity{
             myDevice.touchImage.setImageBitmap(BitmapFactory.decodeFile(picturePath));
             myDevice.bitmap = BitmapFactory.decodeFile(picturePath);
             Log.i(TAG,"   picture showed");
-            //((ServerDevice)myDevice).sendFile(myDevice.bitmap);
+            ((ServerDevice)myDevice).sendFile(myDevice.bitmap);
         }
     }
     public Handler handler=new Handler() {
