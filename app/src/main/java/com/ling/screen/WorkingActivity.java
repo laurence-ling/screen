@@ -17,6 +17,7 @@ import android.widget.Button;
 
 import com.Jing.ChangePic;
 import com.datouhou.TouchImageView;
+import com.iraka.widget.Coordinate;
 import com.iraka.widget.ScreenEvent;
 
 import java.io.IOException;
@@ -117,7 +118,10 @@ public class WorkingActivity extends Activity{
                 if(!flag)   temp_device=myDevice;
                 buffer = Package.getData();
                 ScreenEvent Sevent=new ScreenEvent(buffer,0);
-                //Log.i(TAG,"type" + Sevent.type+"0");
+
+                Coordinate deviceCoord=new Coordinate(myDevice.posX,myDevice.posY,myDevice.angle);
+                Log.i(TAG,"type" + Sevent.type+"0");
+
                 if(Sevent.type==-1){
                     temp_device.finger_num=0;
                     Log.i(TAG,"finger_num 0");
@@ -125,14 +129,20 @@ public class WorkingActivity extends Activity{
                 else{
                     temp_device.finger_num=1;
                     Log.i(TAG,"finger_num 1");
-                    temp_device.point[0]=Sevent.posX;
-                    temp_device.point[1]=Sevent.posY;
+                    double x = Sevent.posX;
+                    double y = Sevent.posY;
+                    Coordinate globalCoord=(new Coordinate(x,y)).toGlobal(deviceCoord);
+                    temp_device.point[0]=globalCoord.x;
+                    temp_device.point[1]=globalCoord.y;
                     if(Sevent.type==20){
                         Log.i(TAG,"finger_num 2");
                         temp_device.finger_num++;
                         Sevent=new ScreenEvent(buffer,44);
-                        temp_device.point[2]=Sevent.posX;
-                        temp_device.point[3]=Sevent.posY;
+                        x = Sevent.posX;
+                        y = Sevent.posY;
+                        globalCoord=(new Coordinate(x,y)).toGlobal(deviceCoord);
+                        temp_device.point[2]=globalCoord.x;
+                        temp_device.point[3]=globalCoord.y;
                     }
                     changepic.myrun();
                     screenEvent = changepic.screenEvent;
