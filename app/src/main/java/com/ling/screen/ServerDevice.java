@@ -297,6 +297,14 @@ public class ServerDevice extends Device{
                 
                 while(status==Device.CALIBRATE_STATUS){
                     try{
+                        if (udpSocket == null){
+                            try{
+                                Thread.sleep(50);
+                            }catch (InterruptedException e){
+                                Log.e(TAG, "interrupted", e);
+                            }
+
+                        }
                         udpSocket.setSoTimeout(0);
                         udpSocket.receive(touchEventPacket);
                     }catch(SocketTimeoutException e){
