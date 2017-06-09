@@ -151,9 +151,6 @@ public class ServerDevice extends Device{
     }
 
     public void sendFile(Bitmap bitmap){
-        /*int bytes = bitmap.getByteCount();
-        ByteBuffer buffer = ByteBuffer.allocate(bytes);
-        bitmap.copyPixelsToBuffer(buffer);*/
         ByteArrayOutputStream oStream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, oStream);
         byte[] buffer = oStream.toByteArray();
@@ -186,7 +183,32 @@ public class ServerDevice extends Device{
         }
     }
 
+    public void sendEventToClient(byte[] buffer){
+        new Thread(new SendEventToClientThread(buffer)).start();
+    }
 
+    class SendEventToClientThread implements Runnable{
+        byte[] buffer;
+        public SendEventToClientThread(byte[] _buf){
+            buffer = _buf;
+        }
+        @Override
+        public void run() {
+            try {
+                DatagramSocket socket = new DatagramSocket();
+                for (InetAddress clientAddr : deviceMap.keySet()) {
+                    if (address == clientAddr)
+                        continue; // server self
+                    DatagramPacket packet = new DatagramPacket(buffer, buffer.length,
+                            clientAddr, Device.CLIENT_UDP_PORT);
+                    socket.send(packet);
+                    Log.i(TAG, "send event to client " + clientAddr.toString());
+                }
+            }catch (IOException e) {
+
+            }
+        }
+    }
 
     @Override
     public void closeSocket(){
