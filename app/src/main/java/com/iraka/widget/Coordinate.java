@@ -66,7 +66,13 @@ public class Coordinate{
 		
 		return new Coordinate(x_lc,y_lc,a_lc);
 	}
-	
+	public Coordinate toLocal2(Device device){
+		double p = Math.sqrt((x * x) + (y * y));
+		double q = Math.atan(y/x);
+		q = q - device.angle;
+		Coordinate coord = new Coordinate(p * Math.cos(q), p * Math.sin(q));
+		return coord;
+	}
 	@Override
 	public String toString(){
 		return "Position = ("+x+","+y+") Angle = "+a+" rad";

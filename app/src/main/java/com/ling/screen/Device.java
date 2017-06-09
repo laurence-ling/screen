@@ -24,7 +24,7 @@ public class Device implements Serializable{
 
     Bitmap bitmap;
     TouchImageView touchImage;
-    double posX=0, posY=0, angle=0; // global coord (mm,mm,rad_CW)
+    public double posX=0, posY=0, angle=0; // global coord (mm,mm,rad_CW)
     double deltaT=0;
 
     public int finger_num=0;

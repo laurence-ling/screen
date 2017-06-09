@@ -11,7 +11,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import static com.ling.screen.Device.myDevice;
-import static java.lang.Math.atan;
+//import static java.lang.Math.atan;
 
 /**
  * Created by jing on 2017/6/8.
@@ -144,7 +144,7 @@ public class ChangePic {
                 double scale = Dis2(posAA, posBB) / Dis2(posA, posB);
                 double k1 = (posA.y - posB.y) / (posA.x - posB.x);
                 double k2 = (posAA.y - posBB.y) / (posAA.x - posBB.x);
-                double angle = atan((k2 - k1) / (1 + k1 * k2));
+                double angle = Math.atan2((k2 - k1), (1 + k1 * k2));
                 long t = System.currentTimeMillis();
                 screenEvent = new ScreenEvent(2, t, mid2.x - mid1.x, mid2.y - mid1.y, scale, angle);
             }
