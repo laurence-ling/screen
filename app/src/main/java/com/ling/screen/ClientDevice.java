@@ -120,6 +120,7 @@ public class ClientDevice extends Device {
                     if (type.equals("3")) {// receive ack sucessfully
                         serverAddr = saddr.getAddress();
                         udpSocket.setSoTimeout(0);
+                        status = Device.CALIBRATE_STATUS;
                         Message sucMsg = new Message();
                         sucMsg.what = 2;
                         agActivity.handler.sendMessage(sucMsg);
@@ -135,18 +136,21 @@ public class ClientDevice extends Device {
     }
     public void receiveServerEvent(WorkingActivity _wkActivity){
         wkAcitivity = _wkActivity;
+        Log.i(TAG, "start receive server event");
         new Thread(new ReceiveServerEventThread()).start();
 
     }
     class ReceiveServerEventThread implements Runnable{
         @Override
         public void run(){
+            Log.i(TAG, "receive event thread started");
             while(true) {
                 byte[] buf = new byte[128];
                 DatagramPacket recvPacket = new DatagramPacket(buf, buf.length);
                 try{
-                    udpSocket.receive(recvPacket);
+                    wkAcitivity.myDevice.udpSocket.receive(recvPacket);
                     ScreenEvent event = new ScreenEvent(recvPacket.getData(), 0);
+                    Log.i(TAG, "receive data " + recvPacket.getLength() + "bytes");
                     wkAcitivity.screenEvent = event;
                 } catch(IOException e){
                     Log.e(TAG, "", e);

@@ -114,10 +114,12 @@ public class WorkingActivity extends Activity{
 
                 changepic.myrun();
                 screenEvent = changepic.screenEvent;
+                double px = (float)(temp_device.point[0] + temp_device.point[2])/2;
+                double py = (float)(temp_device.point[1] + temp_device.point[3])/2;
                 byte[] eventBuf = new byte[128];
                 screenEvent.writeEventBuffer(eventBuf, 0);
                 ((ServerDevice)myDevice).sendEventToClient(eventBuf);
-                showPic();
+                showPic(px, py);
             }
         }
     }
@@ -162,11 +164,11 @@ public class WorkingActivity extends Activity{
          Log.w("TIVIV","cnt="+temp_device.finger_num+" f0 = ("+temp_device.point[0]+","+temp_device.point[1]
          +") f1 = ("+temp_device.point[2]+","+temp_device.point[3]+")");
     }
-    public void showPic(){
+    public void showPic(double px, double py){
         Log.i(TAG, "in showPicThread");
-        
-        double px = (float)(temp_device.point[0] + temp_device.point[2])/2;
-        double py = (float)(temp_device.point[1] + temp_device.point[3])/2;
+        if (temp_device == null)
+            return;
+
         //matrix.postTranslate((float)screenEvent.posX, (float)screenEvent.posY);
         Coordinate coord = new Coordinate(screenEvent.posX, screenEvent.posY).toLocal2(myDevice);
         Coordinate midCoord = new Coordinate(px, py).toLocal(new Coordinate(myDevice.posX,myDevice.posY,myDevice.angle));
@@ -223,12 +225,12 @@ public class WorkingActivity extends Activity{
         public void handleMessage(Message msg) {
             if (msg.what == 1) { // client receive image file
                 Log.w(TAG, "Matrix = "+matrix);
-                //myDevice.touchImage.setImageBitmap(tempBitmap);
                 setImage(myDevice.bitmap, matrix);
             }
             else if (msg.what == 2){ // client receive screen event
-                Log.w(TAG, "client received screen event");
-                showPic();
+                Log.w(TAG, "client received screen event " + screenEvent.toString());
+                temp_device = myDevice;
+                //showPic();
             }
         }
     };
