@@ -58,6 +58,7 @@ public class WorkingActivity extends Activity{
         Log.i(TAG,"working activity start");
         myDevice=Device.myDevice;
         matrix = new Matrix();
+        matrixInit();
         myDevice.touchImage = (TouchImageView)findViewById(R.id.imgView);
         openPicBtn = (Button)findViewById(R.id.button1);
         if(!MainActivity.isServer){
@@ -87,7 +88,7 @@ public class WorkingActivity extends Activity{
         public void run() {
             while (true) {
                 try {
-                    Thread.sleep(50);
+                    Thread.sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -98,6 +99,15 @@ public class WorkingActivity extends Activity{
                 }
             }
         }
+    }
+    public void matrixInit()
+    {
+        double p = Math.hypot(myDevice.posX,myDevice.posY);
+        double q = Math.atan2(myDevice.posY,myDevice.posX);
+        double dx = p*Math.cos(q + Math.PI - myDevice.angle)*Device.ppmX;
+        double dy = p*Math.sin(q + Math.PI - myDevice.angle)*Device.ppmY;
+        matrix.postTranslate((float)dx, (float)dy);
+        matrix.postRotate((float)(-myDevice.angle), 0, 0);
     }
 
     public class ReceiveEventThread implements Runnable{
@@ -207,7 +217,7 @@ public class WorkingActivity extends Activity{
             cursor.close();
             //send;
             myDevice.bitmap = BitmapFactory.decodeFile(picturePath);
-            setImage(myDevice.bitmap, new Matrix());
+            setImage(myDevice.bitmap, matrix);
             Log.w(TAG,"   picture showed");
             ((ServerDevice)myDevice).sendFile(myDevice.bitmap);
             openPicBtn.setVisibility(View.GONE);

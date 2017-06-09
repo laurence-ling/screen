@@ -80,12 +80,16 @@ public class TouchImageView extends SurfaceView implements SurfaceHolder.Callbac
         setOnTouchListener(mListener);
         mGestureDetector=new GestureDetector(getContext(), new GestureListener(mListener));
     }
-    
+
     public void onWindowFocusChanged(boolean hasFocus){
         super.onWindowFocusChanged(hasFocus);
+        resizeCanvasArea();
+    }
+
+    public void resizeCanvasArea(){
         bgRect=new Rect(0,0,getWidth(),getHeight());
     }
-    
+
     public class MatrixTouchListener implements OnTouchListener{
         @Override
         public boolean onTouch(View v, MotionEvent event) {
