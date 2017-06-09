@@ -138,6 +138,7 @@ public class WorkingActivity extends Activity{
             Log.i(TAG, "finger_num 1");
             double x = Sevent.posX;
             double y = Sevent.posY;
+            Log.i(TAG,"x:"+x+"  y:"+y);
             Coordinate globalCoord = (new Coordinate(x, y)).toGlobal(deviceCoord);
             temp_device.point[0] = globalCoord.x;
             temp_device.point[1] = globalCoord.y;
