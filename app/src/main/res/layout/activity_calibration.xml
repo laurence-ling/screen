@@ -9,8 +9,12 @@
         android:id="@+id/info_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorPrimary"
+        android:background="#FF8080"
         android:text="TextView"
+<<<<<<< HEAD
         android:textSize="36sp"/>
 
+=======
+        android:textSize="18sp"/>
+>>>>>>> cd8953d79b0badd3bc27b3001cf5d72106fcdde9
 </FrameLayout>
