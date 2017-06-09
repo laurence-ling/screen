@@ -4,11 +4,13 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.iraka.widget.Coordinate;
 import com.iraka.widget.ScreenEvent;
 import com.ling.screen.Device;
 
@@ -56,27 +58,39 @@ public class TouchImageView extends android.support.v7.widget.AppCompatImageView
             if(finger_count==1){
                 point[0]=event.getX();
                 point[1]=event.getY();
+                if(event.getAction()==MotionEvent.ACTION_UP){
+                    finger_count=0;
+                }
             }
+            //Log.w("TIVIV","Finger"+finger_count);
             return mGestureDetector.onTouchEvent(event);
         }
     }
 
     byte [] buffer = new byte[100];
-    public void task(InetAddress server_address) throws IOException {
+    public void task(InetAddress server_address,Coordinate deviceCoord) throws IOException {
             if(finger_count==1){
-                ScreenEvent Sevent = new ScreenEvent(10,point[0],point[1]);
+                Coordinate global1=new Coordinate(point[0],point[1]).toGlobal(deviceCoord);
+                ScreenEvent Sevent = new ScreenEvent(10,global1.x,global1.y);
                 Sevent.writeEventBuffer(buffer,0);
+	            Log.w("TIVIE","1:"+Sevent);
             }
             else if(finger_count==2){
-                ScreenEvent Sevent = new ScreenEvent(20,point[0],point[1]);
+                Coordinate global1=new Coordinate(point[0],point[1]).toGlobal(deviceCoord);
+                Coordinate global2=new Coordinate(point[2],point[3]).toGlobal(deviceCoord);
+                ScreenEvent Sevent = new ScreenEvent(20,global1.x,global1.y);
                 Sevent.writeEventBuffer(buffer,0);
-                Sevent = new ScreenEvent(20,point[2],point[3]);
-                Sevent.writeEventBuffer(buffer,22);
+	            Log.w("TIVIE","2:"+Sevent);
+                Sevent = new ScreenEvent(20,global2.x,global2.y);
+                Sevent.writeEventBuffer(buffer,44);
+                Log.w("TIVIE","3:"+Sevent);
             }
             else{
-                ScreenEvent Sevent = new ScreenEvent(-1,point[0],point[1]);
+                ScreenEvent Sevent=new ScreenEvent(-1,point[0],point[1]);
                 Sevent.writeEventBuffer(buffer,0);
+	            Log.w("TIVIE","0:"+Sevent);
             }
+            
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length,server_address, Device.CLIENT_UDP_PORT);
         socket.send(packet);
         buffer = new byte[1024];

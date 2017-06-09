@@ -318,8 +318,16 @@ public class ServerDevice extends Device{
                 Log.i(TAG,"Receive Calib Data Initialized, start calibrating");
                 
                 while(status==Device.CALIBRATE_STATUS){
+                    
+                    if(deviceMap.size()==1){ // Only Server
+                        Message msg=new Message();
+                        msg.what=3;
+                        ca.handler.sendMessage(msg);
+                        break;
+                    }
+                    
                     try{
-                        if (udpSocket == null){
+                        while (udpSocket == null){
                             try{
                                 Thread.sleep(50);
                             }catch (InterruptedException e){
@@ -388,11 +396,9 @@ public class ServerDevice extends Device{
                         continue;
                     }
                     
-                    if(lastDevice.isCalibrated!=nowDevice.isCalibrated){ // One is not calibrated
-                        calibratedDeviceCnt++;
-                    }
-                    
                     if(lastDevice.isCalibrated&&!nowDevice.isCalibrated){ // from old to new
+                        calibratedDeviceCnt++;
+                        
                         double v_avg=(vLastEnd+vNowStart)/2;
                         double dis=v_avg*(nowStartTime-lastEndTime);
                         
