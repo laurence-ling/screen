@@ -16,7 +16,6 @@ import android.widget.EditText;
 public class MainActivity extends Activity {
     private static final String TAG = "MainActivity";
     
-    public Device myDevice;
     public static boolean isServer;
     Button newGpBtn;
     Button findGpBtn;

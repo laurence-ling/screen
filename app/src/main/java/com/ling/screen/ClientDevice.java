@@ -98,7 +98,7 @@ public class ClientDevice extends Device {
         DatagramPacket sendPacket;
         DatagramPacket recvPacket;
         InetSocketAddress saddr;
-        int round = 10;
+        int round = 3;
         public ConnectServerThread(InetSocketAddress addr){
             saddr = addr;
         }
@@ -107,7 +107,7 @@ public class ClientDevice extends Device {
             byte[] buf = new byte[100];
             recvPacket = new DatagramPacket(buf, buf.length);
             String msg = "2@";
-            while (round-- > 0) { // try sending 10 times
+            while (round-- > 0 && status == Device.WAITING_STATUS) { // try sending 10 times
                 try {
                     sendPacket = new DatagramPacket(msg.getBytes(), msg.length(), saddr);
                     udpSocket.send(sendPacket);
@@ -146,15 +146,17 @@ public class ClientDevice extends Device {
                 Log.i(TAG, "accept file from " + socket.getInetAddress());
                 DataInputStream iStream = new DataInputStream(socket.getInputStream());
                 byte[] barray = new byte[Device.MAX_IMAGE_SIZE];
-                byte[] temp = new byte[8192];
+                byte[] temp = new byte[4096];
                 int len, totalSize = 0;
                 while((len = iStream.read(temp)) > 0){
                     Log.i(TAG, "receive bytes len " + len);
                     System.arraycopy(temp, 0, barray, totalSize, len);
                     totalSize += len;
+                    temp = new byte[4096];
                 }
-
+                Log.i(TAG, "total len " + totalSize);
                 bitmap = BitmapFactory.decodeByteArray(barray, 0, totalSize);
+                Log.i(TAG, "recover bit map " + bitmap.getHeight()+"*"+bitmap.getWidth());
 
             } catch (IOException e) {
                 Log.e(TAG, "listen socket error", e);

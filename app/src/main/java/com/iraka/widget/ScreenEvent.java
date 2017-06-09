@@ -2,16 +2,21 @@ package com.iraka.widget;
 
 import android.view.MotionEvent;
 
+import java.io.Serializable;
+
 /**
  * Created by Iraka Crow on 2017/6/8.
  */
 
-public class ScreenEvent{
+public class ScreenEvent implements Serializable{
 	
 	public static final int DOWN=MotionEvent.ACTION_DOWN;
 	public static final int MOVE=MotionEvent.ACTION_MOVE;
 	public static final int UP=MotionEvent.ACTION_UP;
 	public static final int CANCEL=MotionEvent.ACTION_CANCEL;
+	public static final int TIME_SYNC=-233;
+	public static final int CALIB_OK=-234; // this device is calibrated
+	public static final int ALL_CALIB_OK=-235; // ALL device is calibrated
 	
 	public final int type;
 	public final long timestamp;
