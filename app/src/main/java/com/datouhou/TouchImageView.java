@@ -9,6 +9,7 @@ import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.iraka.widget.Coordinate;
 import com.iraka.widget.ScreenEvent;
 import com.ling.screen.Device;
 
@@ -49,60 +50,9 @@ public class TouchImageView extends android.support.v7.widget.AppCompatImageView
     }
 
     public class MatrixTouchListener implements OnTouchListener{
-        /** 拖拉照片模式 */
-        private static final int MODE_DRAG = 1;
-        /** 放大缩小照片模式 */
-        private static final int MODE_ZOOM = 2;
-        /**  不支持Matrix */
-        private static final int MODE_UNABLE=3;
-
-        private int mMode = 0;//
-
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             // TODO Auto-generated method stub
-            /*switch (event.getActionMasked()) {
-                case MotionEvent.ACTION_DOWN:
-                    mode[0]=0;
-                    point[0]=event.getX();
-                    point[1]=event.getY();
-                    //设置拖动模式
-                    mMode=MODE_DRAG;
-                    break;
-                case MotionEvent.ACTION_UP:
-                    if(mode[1]==5){
-                        mode[1]=1;
-                        point[0]=event.getX();
-                        point[1]=event.getY();
-                        mMode=MODE_DRAG;
-                    }
-                    else{
-                        mode[0]=1;
-                    }
-                    break;
-                case MotionEvent.ACTION_CANCEL:
-                case MotionEvent.ACTION_MOVE:
-                    mode[0]=2;
-                    point[0]=event.getX(0);
-                    point[1]=event.getY(0);
-                    if (mMode == MODE_ZOOM) {
-                        mode[1]=5;
-                        point[2]=event.getX(1);
-                        point[3]=event.getY(1);
-                    }
-                    break;
-                case MotionEvent.ACTION_POINTER_DOWN:
-                    if(mMode==MODE_UNABLE) return true;
-                    mMode=MODE_ZOOM;
-                    mode[1]=5;
-                    point[2]=event.getX(1);
-                    point[3]=event.getY(1);
-                    break;
-                default:
-                    mode[0]=-1;
-                    mode[1]=-1;
-                    break;
-            }*/
             finger_count=event.getPointerCount();
             if(finger_count==2){
                 point[0]=event.getX(0);
