@@ -2,6 +2,7 @@ package com.Jing;
 
 import android.util.Log;
 
+import com.iraka.widget.Coordinate;
 import com.iraka.widget.ScreenEvent;
 import com.ling.screen.Device;
 import com.ling.screen.ServerDevice;
@@ -25,6 +26,10 @@ public class ChangePic {
     Device serverDevice;
     public ScreenEvent screenEvent;
     private static final String TAG = "ChangePic";
+    
+    // for refinement, new data format to send
+    public Coordinate bitmapCoord=new Coordinate(0,0,0);
+    public double bitmapScale=1;
 
     public ChangePic(Device server) {
         serverDevice = server;
@@ -109,7 +114,7 @@ public class ChangePic {
         return new Pos(x, y);
     }
 
-    public void myrun() {
+    public void myrun() { // All global Coord
         Log.i(TAG, "start to change pic");
         finger_num_new=0;
         getScreenInfo();
@@ -125,6 +130,8 @@ public class ChangePic {
             double transX = point_new[0] - point_old[0];
             double transY = point_new[1] - point_old[1];
             screenEvent = new ScreenEvent(0,0, transX, transY,0,1);
+    
+            bitmapCoord=new Coordinate(bitmapCoord.x+transX,bitmapCoord.y+transY,bitmapCoord.a);
         } else if (finger_num_new == 2 && finger_num_old == 2) {
             Pos posA = new Pos(point_old[0], point_old[1]);
             Pos posB = new Pos(point_old[2], point_old[3]);
@@ -146,13 +153,41 @@ public class ChangePic {
             double scale = Dis2(posAA, posBB) / Dis2(posA, posB);
             double ang1 = Math.atan2(posA.y - posB.y, posA.x - posB.x);
             double ang2 = Math.atan2(posAA.y - posBB.y, posAA.x - posBB.x);
-            double angle = ang1-ang2;
+            double angle = ang2-ang1;
             //long t = System.currentTimeMillis();
             screenEvent = new ScreenEvent(0, 0, mid2.x - mid1.x, mid2.y - mid1.y, angle, scale);
+    
+            // Translate
+            double oX=bitmapCoord.x+screenEvent.posX;
+            double oY=bitmapCoord.y+screenEvent.posY;
+            // Move to O, rotate / scale around point mid2 (global)
+            oX=oX-mid2.x;
+            oY=oY-mid2.y;
+            // Rotate
+            double cosA=Math.cos(angle);
+            double sinA=Math.sin(angle);
+            double o1X=oX*cosA-oY*sinA;
+            double o1Y=oX*sinA+oY*cosA;
+            // Scale
+            o1X*=scale;
+            o1Y*=scale;
+            // Move back from O
+            oX=o1X+mid2.x;
+            oY=o1Y+mid2.y;
+    
+            // Angle, Scale dispose
+            double aNew=bitmapCoord.a+angle;
+            double sNew=bitmapScale*scale;
+    
+            // renew Coord & Scale
+            bitmapCoord=new Coordinate(oX,oY,aNew);
+            bitmapScale=sNew;
         } else
             screenEvent = new ScreenEvent(0,0,0,0,0,1);
+        
+        Log.i(TAG,"New_coord : "+bitmapCoord+" scale = "+bitmapScale);
+        //Log.i(TAG,"Dev_coord : "+"("+mX+","+mY+")");
         setScreenInfo(serverDevice);
         
-        Log.w("TIVIK", "Scale="+screenEvent.velY);
     }
 }
