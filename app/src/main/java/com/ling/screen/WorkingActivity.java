@@ -44,6 +44,7 @@ public class WorkingActivity extends Activity{
     Device myDevice;
     Device temp_device;
     //Bitmap tempBitmap;
+    
     Matrix matrix;
     ScreenEvent screenEvent;
     ScreenEvent midEvent;
@@ -57,10 +58,10 @@ public class WorkingActivity extends Activity{
         setContentView(R.layout.activity_working);
         Log.i(TAG,"working activity start");
         myDevice=Device.myDevice;
-        matrix = new Matrix();
-        matrixInit();
         myDevice.touchImage = (TouchImageView)findViewById(R.id.imgView);
         openPicBtn = (Button)findViewById(R.id.button1);
+        matrixInit();
+        
         if(!MainActivity.isServer){
             openPicBtn.setVisibility(View.GONE);
             ((ClientDevice)myDevice).acceptFile(WorkingActivity.this);
@@ -88,7 +89,7 @@ public class WorkingActivity extends Activity{
         public void run() {
             while (true) {
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(50);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -102,12 +103,25 @@ public class WorkingActivity extends Activity{
     }
     public void matrixInit()
     {
-        double p = Math.hypot(myDevice.posX,myDevice.posY);
-        double q = Math.atan2(myDevice.posY,myDevice.posX);
-        double dx = p*Math.cos(q + Math.PI - myDevice.angle)*Device.ppmX;
-        double dy = p*Math.sin(q + Math.PI - myDevice.angle)*Device.ppmY;
-        matrix.postTranslate((float)dx, (float)dy);
-        matrix.postRotate((float)(-myDevice.angle), 0, 0);
+        // get BMP left-up corner Coord in myDevice Coord
+        double xOC=-myDevice.posX;
+        double yOC=-myDevice.posY;
+        double pOC=Math.hypot(xOC,yOC);
+        double aOC=Math.atan2(yOC,xOC);
+        double aBMPc=aOC-myDevice.angle;
+        double xBMPc=pOC*Math.cos(aBMPc)*Device.ppmX;
+        double yBMPc=pOC*Math.sin(aBMPc)*Device.ppmY;
+    
+        // get Rotation Angle
+        double aBMP=-myDevice.angle;
+    
+        // get Device-related Scale
+        double sBMP=Device.ppmX/12; // Assume that standard width is 12 pix/mm && ppmX == ppmY
+    
+        matrix=new Matrix();
+        matrix.postTranslate((float)xBMPc,(float)yBMPc);
+        matrix.postRotate((float)(aBMP/Math.PI*180),(float)xBMPc,(float)yBMPc);
+        matrix.postScale((float)sBMP,(float)sBMP,(float)xBMPc,(float)yBMPc);
     }
 
     public class ReceiveEventThread implements Runnable{
@@ -125,47 +139,51 @@ public class WorkingActivity extends Activity{
                 genEvent(pack);
 
                 changepic.myrun();
-                screenEvent = changepic.screenEvent;
+                /*screenEvent = changepic.screenEvent;
                 double px = (float)(temp_device.point[0] + temp_device.point[2])/2;
                 double py = (float)(temp_device.point[1] + temp_device.point[3])/2;
                 byte[] eventBuf = new byte[128];
                 screenEvent.writeEventBuffer(eventBuf, 0);
                 ScreenEvent mid_screenEvent = new ScreenEvent(0,px,py);
                 mid_screenEvent.writeEventBuffer(eventBuf,44);
+                ((ServerDevice)myDevice).sendEventToClient(eventBuf);*/
+                
+                byte[] eventBuf = new byte[44];
+                Coordinate coord=changepic.bitmapCoord;
+                double scale=changepic.bitmapScale;
+                ScreenEvent bitmapPose=new ScreenEvent(0,0,coord.x,coord.y,coord.a,scale);
+                bitmapPose.writeEventBuffer(eventBuf,0);
                 ((ServerDevice)myDevice).sendEventToClient(eventBuf);
-                showPic(px, py);
+                
+                showPic(coord,scale);
             }
         }
     }
-     public void genEvent(DatagramPacket pack){
+    public void genEvent(DatagramPacket pack){
          InetAddress address = pack.getAddress();
         //Log.i(TAG,"   Device: "+address.toString());
         temp_device=((ServerDevice)myDevice).deviceMap.get(address);
         
         if(temp_device==null){
-            Log.w("TIVIV","Not Found, "+address);
             temp_device=myDevice;
         }
         buffer = pack.getData();
         ScreenEvent Sevent=new ScreenEvent(buffer,0);
-
-        
-        Log.i("ISJDI",address+" type " + Sevent.type+" 0");
-
+    
         if(Sevent.type==-1){
             temp_device.finger_num=0;
-            Log.i(TAG,"finger_num 0");
+            //Log.i(TAG,"finger_num 0");
         }
         else {
             temp_device.finger_num = 1;
-            Log.i(TAG, "finger_num 1");
+            //Log.i(TAG, "finger_num 1");
             double x = Sevent.posX;
             double y = Sevent.posY;
-            Log.i(TAG,"x:"+x+"  y:"+y);
+            //Log.i(TAG,"x:"+x+"  y:"+y);
             temp_device.point[0] = x;
             temp_device.point[1] = y;
             if (Sevent.type == 20) {
-                Log.i(TAG, "finger_num 2");
+                //Log.i(TAG, "finger_num 2");
                 temp_device.finger_num++;
                 Sevent = new ScreenEvent(buffer, 44);
                 x = Sevent.posX;
@@ -175,25 +193,33 @@ public class WorkingActivity extends Activity{
             }
         }
     
-         Log.w("TIVIV","cnt="+temp_device.finger_num+" f0 = ("+temp_device.point[0]+","+temp_device.point[1]
-         +") f1 = ("+temp_device.point[2]+","+temp_device.point[3]+")");
+         //Log.w("TIVIV","cnt="+temp_device.finger_num+" f0 = ("+temp_device.point[0]+","+temp_device.point[1]
+         //+") f1 = ("+temp_device.point[2]+","+temp_device.point[3]+")");
     }
-    public void showPic(double px, double py){
-        Log.i(TAG, "in showPicThread");
-        if (temp_device == null)
-            return;
-
-        //matrix.postTranslate((float)screenEvent.posX, (float)screenEvent.posY);
-        Coordinate coord = new Coordinate(screenEvent.posX, screenEvent.posY).toLocal2(myDevice);
-        Coordinate midCoord = new Coordinate(px, py).toLocal(new Coordinate(myDevice.posX,myDevice.posY,myDevice.angle));
-        double dx = coord.x * Device.ppmX;
-        double dy = coord.y * Device.ppmY;
-        Log.i(TAG, "transdx"+dx+" transdy" + dy);
-        matrix.postTranslate((float)dx, (float)dy);
-        matrix.postRotate((float)(-screenEvent.velX/Math.PI*180), (float)midCoord.x, (float)midCoord.y);
-        matrix.postScale((float)screenEvent.velY, (float)screenEvent.velY, (float)midCoord.x, (float)midCoord.y);
+    
+    public void showPic(Coordinate coord,double scale){ // show picture with Coord/Scale
+        if (temp_device == null)return;
         
-        //tempBitmap = Bitmap.createBitmap(myDevice.bitmap, 0, 0, myDevice.bitmap.getWidth(), myDevice.bitmap.getHeight(), matrix, true);
+        // get BMP left-up corner Coord in myDevice Coord
+        double xOC=coord.x-myDevice.posX;
+        double yOC=coord.y-myDevice.posY;
+        double pOC=Math.hypot(xOC,yOC);
+        double aOC=Math.atan2(yOC,xOC);
+        double aBMPc=aOC-myDevice.angle;
+        double xBMPc=pOC*Math.cos(aBMPc)*Device.ppmX;
+        double yBMPc=pOC*Math.sin(aBMPc)*Device.ppmY;
+        
+        // get Rotation Angle
+        double aBMP=coord.a-myDevice.angle;
+        
+        // get Device-related Scale
+        double sBMP=scale*Device.ppmX/12; // Assume that standard width is 12 pix/mm && ppmX == ppmY
+        
+        matrix=new Matrix();
+        matrix.postTranslate((float)xBMPc,(float)yBMPc);
+        matrix.postRotate((float)(aBMP/Math.PI*180),(float)xBMPc,(float)yBMPc);
+        matrix.postScale((float)sBMP,(float)sBMP,(float)xBMPc,(float)yBMPc);
+        
         Message msg = new Message();
         msg.what = 1;
         handler.sendMessage(msg);
@@ -217,22 +243,22 @@ public class WorkingActivity extends Activity{
             cursor.close();
             //send;
             myDevice.bitmap = BitmapFactory.decodeFile(picturePath);
-            setImage(myDevice.bitmap, matrix);
+            //showPic(new Coordinate(0,0,0),1);
             Log.w(TAG,"   picture showed");
             ((ServerDevice)myDevice).sendFile(myDevice.bitmap);
             openPicBtn.setVisibility(View.GONE);
+    
+            Message msg = new Message();
+            msg.what = 1;
+            handler.sendMessage(msg);
         }
     }
     //public static Paint paint = new Paint();
     public void setImage(Bitmap bitmap, Matrix matrix_){
         if(myDevice.touchImage.getWidth()==0||myDevice.touchImage.getHeight()==0||bitmap==null)return;
-        //Bitmap background = Bitmap.createBitmap(myDevice.touchImage.getWidth(), myDevice.touchImage.getHeight(), Bitmap.Config.ARGB_8888);
-        //Canvas canvas = new Canvas(background);
-        //canvas.drawBitmap(bitmap, matrix_, paint); // at most 80ms
-    
         myDevice.touchImage.setImageBitmap(bitmap,matrix_);
-
     }
+    
     public Handler handler=new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -242,9 +268,11 @@ public class WorkingActivity extends Activity{
                 setImage(myDevice.bitmap, matrix);
             }
             else if (msg.what == 2){ // client receive screen event
-                Log.w(TAG, "client received screen event " + screenEvent.toString());
+                //Log.w(TAG, "client received screen event " + screenEvent.toString());
                 temp_device = myDevice;
-                showPic(midEvent.posX,midEvent.posY);
+	            Bundle b=msg.getData();
+	            Coordinate bitmapPose=new Coordinate(b.getDouble("x"),b.getDouble("y"),b.getDouble("a"));
+                showPic(bitmapPose,b.getDouble("s"));
             }
         }
     };

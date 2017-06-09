@@ -39,8 +39,6 @@ public class ServerDevice extends Device{
     DatagramSocket beaconSocket; //server only socket, non-bind
     Thread beaconThread;
     private NewGroupActivity ngActivity;
-    Bitmap picBitmap;
-    private Handler handler= new Handler();
 
     public ServerDevice(){
         super();
@@ -129,7 +127,7 @@ public class ServerDevice extends Device{
             while(status == Device.WAITING_STATUS) {
                 try {
                     beaconSocket.send(sendPacket);
-                    Thread.sleep(100);
+                    Thread.sleep(200);
                 } catch (IOException e) {
                     Log.e(TAG, "send error", e);
                 } catch(InterruptedException e){
@@ -380,7 +378,7 @@ public class ServerDevice extends Device{
                         vLastEnd=Math.hypot(evLastEnd.velX,evLastEnd.velY);
                         vNowStart=Math.hypot(evNowStart.velX,evNowStart.velY);
                         vDiffRatio=Math.abs(vLastEnd-vNowStart)/Math.max(vLastEnd,vNowStart);
-                        if(vDiffRatio>0.2){
+                        if(vDiffRatio>0.15){
                             throw new DataFormatException("Unstable Connection: "+vDiffRatio);
                         }
                         lastDevice=deviceMap.get(lastAddr.getAddress());

@@ -83,15 +83,18 @@ public class ClientDevice extends Device {
         public void parsePacket(){
             int len = packet.getLength();
             String recvStr = new String(packet.getData()).substring(0, len);
-            String type = recvStr.split("@")[0];
-            String serverName = recvStr.split("@")[1];
-            Log.i(TAG, "find server " + serverName);
-            InetSocketAddress saddr = new InetSocketAddress(packet.getAddress(), packet.getPort());
-            if(!agActivity.serverMap.containsKey(serverName)) {
-                agActivity.serverMap.put(serverName, saddr);
-                Message msg = new Message();
-                msg.what = 1;  //refresh server list
-                agActivity.handler.sendMessage(msg);
+            String[] recvStrInfo=recvStr.split("@");
+            if(recvStrInfo.length>1){
+                String type=recvStrInfo[0];
+                String serverName=recvStrInfo[1];
+                Log.i(TAG,"find server "+serverName);
+                InetSocketAddress saddr=new InetSocketAddress(packet.getAddress(),packet.getPort());
+                if(!agActivity.serverMap.containsKey(serverName)){
+                    agActivity.serverMap.put(serverName,saddr);
+                    Message msg=new Message();
+                    msg.what=1;  //refresh server list
+                    agActivity.handler.sendMessage(msg);
+                }
             }
         }
     }
@@ -145,20 +148,27 @@ public class ClientDevice extends Device {
         public void run(){
             Log.i(TAG, "receive event thread started");
             while(true) {
-                byte[] buf = new byte[128];
+                byte[] buf = new byte[44];
                 DatagramPacket recvPacket = new DatagramPacket(buf, buf.length);
                 try{
                     wkAcitivity.myDevice.udpSocket.receive(recvPacket);
-                    wkAcitivity.screenEvent = new ScreenEvent(recvPacket.getData(), 0);
-                    Log.i(TAG, "receive data " + recvPacket.getLength() + "bytes");
-                    wkAcitivity.midEvent = new ScreenEvent(recvPacket.getData(),44);
-
+                    //wkAcitivity.screenEvent = new ScreenEvent(recvPacket.getData(), 0);
+                    //Log.i(TAG, "receive data " + recvPacket.getLength() + "bytes");
+                    //wkAcitivity.midEvent = new ScreenEvent(recvPacket.getData(),44);
+                    
+                    ScreenEvent bitmapPoseEvent=new ScreenEvent(recvPacket.getData(),0);
+                    Message msg = new Message();
+                    msg.what = 2;
+                    Bundle bundle=new Bundle();
+                    bundle.putDouble("x",bitmapPoseEvent.posX);
+                    bundle.putDouble("y",bitmapPoseEvent.posY);
+                    bundle.putDouble("a",bitmapPoseEvent.velX);
+                    bundle.putDouble("s",bitmapPoseEvent.velY);
+                    msg.setData(bundle);
+                    wkAcitivity.handler.sendMessage(msg);
                 } catch(IOException e){
                     Log.e(TAG, "", e);
                 }
-                Message msg = new Message();
-                msg.what = 2;
-                wkAcitivity.handler.sendMessage(msg);
             }
         }
     }

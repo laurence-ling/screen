@@ -46,27 +46,25 @@ public class TouchImageView extends SurfaceView implements SurfaceHolder.Callbac
     
     private static Paint paint=new Paint();
     private Rect bgRect;
-    private Matrix lastMatrix=new Matrix();
-    private boolean firstBitmapDrawn=false;
     public void setImageBitmap(Bitmap bitmap,Matrix matrix){
         //Log.i(TAG,"Draw BG");
-        if(firstBitmapDrawn&&matrix.equals(lastMatrix)){
-            Log.i(TAG,"Not Changed");
-            return;
+        try{
+            Canvas canvas=holder.lockCanvas();
+            if(canvas==null){
+                Log.i(TAG,"Canvas Error");
+                return;
+            }
+            Log.i(TAG,"Canvas Draw");
+            canvas.drawRect(bgRect,paint);
+            canvas.drawBitmap(bitmap,matrix,paint);
+            holder.unlockCanvasAndPost(canvas);
+        }catch(Exception e){
+            Log.e(TAG,"Canvas Error",e);
         }
-        lastMatrix.set(matrix);
-        Canvas canvas=holder.lockCanvas();
-        if(canvas==null)return;
-        firstBitmapDrawn=true;
-        canvas.drawRect(bgRect,paint);
-        canvas.drawBitmap(bitmap,matrix,paint);
-        holder.unlockCanvasAndPost(canvas);
     }
     
-    private GestureDetector mGestureDetector;
     private double point[]=new double[4];
     private int finger_count=0;
-    private int mode[]=new int[2];
     DatagramSocket socket = new DatagramSocket();
     public TouchImageView(Context context, AttributeSet attrs) throws SocketException {
         super(context, attrs);
@@ -78,18 +76,14 @@ public class TouchImageView extends SurfaceView implements SurfaceHolder.Callbac
         
         MatrixTouchListener mListener=new MatrixTouchListener();
         setOnTouchListener(mListener);
-        mGestureDetector=new GestureDetector(getContext(), new GestureListener(mListener));
     }
 
     public void onWindowFocusChanged(boolean hasFocus){
         super.onWindowFocusChanged(hasFocus);
-        resizeCanvasArea();
-    }
-
-    public void resizeCanvasArea(){
         bgRect=new Rect(0,0,getWidth(),getHeight());
     }
-
+    
+    volatile boolean isNewTouchEventArrived=false;
     public class MatrixTouchListener implements OnTouchListener{
         @Override
         public boolean onTouch(View v, MotionEvent event) {
@@ -109,33 +103,38 @@ public class TouchImageView extends SurfaceView implements SurfaceHolder.Callbac
                 }
             }
             //Log.w("TIVIV","Finger"+finger_count);
-            return mGestureDetector.onTouchEvent(event);
+            isNewTouchEventArrived=true;
+            return true;
         }
     }
 
     byte [] buffer = new byte[100];
     public void task(InetAddress server_address,Coordinate deviceCoord) throws IOException {
-            if(finger_count==1){
-                Coordinate global1=new Coordinate(point[0],point[1]).toGlobal(deviceCoord);
-                ScreenEvent Sevent = new ScreenEvent(10,global1.x,global1.y);
-                Sevent.writeEventBuffer(buffer,0);
-	            Log.w("TIVIE","1:"+Sevent);
-            }
-            else if(finger_count==2){
-                Coordinate global1=new Coordinate(point[0],point[1]).toGlobal(deviceCoord);
-                Coordinate global2=new Coordinate(point[2],point[3]).toGlobal(deviceCoord);
-                ScreenEvent Sevent = new ScreenEvent(20,global1.x,global1.y);
-                Sevent.writeEventBuffer(buffer,0);
-	            Log.w("TIVIE","2:"+Sevent);
-                Sevent = new ScreenEvent(20,global2.x,global2.y);
-                Sevent.writeEventBuffer(buffer,44);
-                Log.w("TIVIE","3:"+Sevent);
-            }
-            else{
-                ScreenEvent Sevent=new ScreenEvent(-1,point[0],point[1]);
-                Sevent.writeEventBuffer(buffer,0);
-	            Log.w("TIVIE","0:"+Sevent);
-            }
+        if(!isNewTouchEventArrived)return; // no need to send new data
+        isNewTouchEventArrived=false;
+        Log.i(TAG,"task_send_event");
+        
+        if(finger_count==1){
+            Coordinate global1=new Coordinate(point[0],point[1]).toGlobal(deviceCoord);
+            ScreenEvent Sevent = new ScreenEvent(10,global1.x,global1.y);
+            Sevent.writeEventBuffer(buffer,0);
+            Log.w("TIVIE","1:"+Sevent);
+        }
+        else if(finger_count==2){
+            Coordinate global1=new Coordinate(point[0],point[1]).toGlobal(deviceCoord);
+            Coordinate global2=new Coordinate(point[2],point[3]).toGlobal(deviceCoord);
+            ScreenEvent Sevent = new ScreenEvent(20,global1.x,global1.y);
+            Sevent.writeEventBuffer(buffer,0);
+            Log.w("TIVIE","2:"+Sevent);
+            Sevent = new ScreenEvent(20,global2.x,global2.y);
+            Sevent.writeEventBuffer(buffer,44);
+            Log.w("TIVIE","3:"+Sevent);
+        }
+        else{
+            ScreenEvent Sevent=new ScreenEvent(-1,point[0],point[1]);
+            Sevent.writeEventBuffer(buffer,0);
+            Log.w("TIVIE","0:"+Sevent);
+        }
             
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length,server_address, Device.CLIENT_UDP_PORT);
         socket.send(packet);
@@ -143,7 +142,7 @@ public class TouchImageView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
 
-    private class  GestureListener extends SimpleOnGestureListener{
+    /*private class  GestureListener extends SimpleOnGestureListener{
         private final MatrixTouchListener listener;
         public GestureListener(MatrixTouchListener listener) {
             this.listener=listener;
@@ -203,7 +202,7 @@ public class TouchImageView extends SurfaceView implements SurfaceHolder.Callbac
             return super.onSingleTapConfirmed(e);
         }
 
-    }
+    }*/
 
 
 }
