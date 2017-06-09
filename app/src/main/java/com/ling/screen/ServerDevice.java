@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -143,11 +144,14 @@ public class ServerDevice extends Device{
     }
 
     public void sendFile(Bitmap bitmap){
-        int bytes = bitmap.getByteCount();
+        /*int bytes = bitmap.getByteCount();
         ByteBuffer buffer = ByteBuffer.allocate(bytes);
-        bitmap.copyPixelsToBuffer(buffer);
-        Log.i(TAG, "bitmap bytes " + bytes);
-        new Thread(new SendFileThread(buffer.array())).start();
+        bitmap.copyPixelsToBuffer(buffer);*/
+        ByteArrayOutputStream oStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, oStream);
+        byte[] buffer = oStream.toByteArray();
+        Log.i(TAG, "bitmap bytes " + buffer.length);
+        new Thread(new SendFileThread(buffer)).start();
     }
 
     class SendFileThread implements Runnable {
@@ -166,6 +170,7 @@ public class ServerDevice extends Device{
                     Socket socket = new Socket(clientAddr, CLIENT_TCP_PORT);
                     Log.i(TAG, "connect client successfully");
                     DataOutputStream oStream = new DataOutputStream(socket.getOutputStream());
+                    Log.i(TAG, "write " + buffer.length + " bytes");
                     oStream.write(buffer);
                     socket.close();
                 } catch (IOException e) {

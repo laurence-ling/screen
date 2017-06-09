@@ -146,15 +146,17 @@ public class ClientDevice extends Device {
                 Log.i(TAG, "accept file from " + socket.getInetAddress());
                 DataInputStream iStream = new DataInputStream(socket.getInputStream());
                 byte[] barray = new byte[Device.MAX_IMAGE_SIZE];
-                byte[] temp = new byte[8192];
+                byte[] temp = new byte[4096];
                 int len, totalSize = 0;
                 while((len = iStream.read(temp)) > 0){
                     Log.i(TAG, "receive bytes len " + len);
                     System.arraycopy(temp, 0, barray, totalSize, len);
                     totalSize += len;
+                    temp = new byte[4096];
                 }
-
+                Log.i(TAG, "total len " + totalSize);
                 bitmap = BitmapFactory.decodeByteArray(barray, 0, totalSize);
+                Log.i(TAG, "recover bit map " + bitmap.getHeight()+"*"+bitmap.getWidth());
 
             } catch (IOException e) {
                 Log.e(TAG, "listen socket error", e);

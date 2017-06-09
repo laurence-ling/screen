@@ -39,7 +39,7 @@ public class WorkingActivity extends Activity{
     ScreenEvent screenEvent;
     public byte [] buffer=new byte[100];;
     public DatagramPacket Package;
-
+    Button openPicBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,16 +48,15 @@ public class WorkingActivity extends Activity{
         Log.i(TAG,"working activity start");
         myDevice=Device.myDevice;
         myDevice.touchImage = (TouchImageView)findViewById(R.id.imgView);
-        Button button1=(Button)findViewById(R.id.button1);
+        openPicBtn = (Button)findViewById(R.id.button1);
         if(!MainActivity.isServer){
-            button1.setVisibility(View.GONE);
+            openPicBtn.setVisibility(View.GONE);
             ((ClientDevice)myDevice).acceptFile(WorkingActivity.this);
         }
         else {
            Log.i(TAG,"This device is server: "+MainActivity.isServer);
            myDevice.serverAddr = myDevice.address;
-
-           button1.setOnClickListener(new View.OnClickListener() {
+           openPicBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent i = new Intent(
@@ -67,7 +66,6 @@ public class WorkingActivity extends Activity{
                 }
            });
             new Thread(new ReceiveEventThread()).start();
-            //new Thread(new showPicThread()).start();
         }
         new Thread(new SendEventThread()).start();
 
@@ -103,7 +101,7 @@ public class WorkingActivity extends Activity{
                     e.printStackTrace();
                 }
                 genEvent();
-                
+
                 changepic.myrun();
                 screenEvent = changepic.screenEvent;
                 showPic();
@@ -199,6 +197,7 @@ public class WorkingActivity extends Activity{
             myDevice.bitmap = BitmapFactory.decodeFile(picturePath);
             Log.i(TAG,"   picture showed");
             ((ServerDevice)myDevice).sendFile(myDevice.bitmap);
+            openPicBtn.setVisibility(View.GONE);
         }
     }
     public Handler handler=new Handler() {
