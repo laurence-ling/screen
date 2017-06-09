@@ -5,20 +5,29 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@mipmap/background"
+    android:gravity="bottom"
     tools:context="com.ling.screen.MainActivity"
-    tools:layout_editor_absoluteY="81dp"
-    tools:layout_editor_absoluteX="0dp">
+    tools:layout_editor_absoluteX="0dp"
+    tools:layout_editor_absoluteY="81dp">
+
 
         <Button
             android:id="@+id/newGroupButton"
+            style="@style/Widget.AppCompat.Button.Colored"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="New Group" />
+
+            android:text="New Group"
+            android:textColorLink="@android:color/holo_blue_bright" />
 
         <Button
             android:id="@+id/findGroupButton"
+            style="@style/Widget.AppCompat.Button.Colored"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Find Group" />
+
+            android:text="Find Group"
+            android:textColorLink="@android:color/holo_blue_bright" />
 
 </LinearLayout>

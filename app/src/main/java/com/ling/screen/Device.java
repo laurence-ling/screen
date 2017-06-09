@@ -29,6 +29,9 @@ public class Device implements Serializable{
 
     public int finger_num=0;
     public double point[]=new double[4];
+
+    public int finger_num_old=0;
+    public double point_old[]=new double[4];
     InetAddress father=null; // your present daddy when calibrating
     
     public static double scr_width, scr_height; // in mm

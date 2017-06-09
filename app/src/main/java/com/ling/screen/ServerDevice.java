@@ -9,20 +9,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
-<<<<<<< HEAD
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
-=======
-import java.io.Serializable;
-import java.net.*;
 import java.nio.ByteBuffer;
->>>>>>> 3ea2329ff2cc9c2932ec38c892cede7588e0f4e0
 import java.util.HashMap;
 import java.util.Map;
 
@@ -156,23 +150,15 @@ public class ServerDevice extends Device{
         new Thread(new SendFileThread(buffer.array())).start();
     }
 
-    class SendFileThread implements Runnable{
+    class SendFileThread implements Runnable {
         byte[] buffer;
-        public SendFileThread(byte[] buf){
+
+        public SendFileThread(byte[] buf) {
             buffer = buf;
         }
+
         @Override
         public void run() {
-<<<<<<< HEAD
-                for (InetAddress clientAddr : deviceMap.keySet())
-                    try {
-                        Socket socket = new Socket(clientAddr, CLIENT_TCP_PORT);
-                        socket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-            }
-=======
             for (InetAddress clientAddr : deviceMap.keySet())
                 try {
                     if (address == clientAddr)
@@ -185,8 +171,8 @@ public class ServerDevice extends Device{
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
->>>>>>> 3ea2329ff2cc9c2932ec38c892cede7588e0f4e0
         }
+    }
 
 
 
