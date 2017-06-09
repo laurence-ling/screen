@@ -9,7 +9,6 @@ import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.iraka.widget.Coordinate;
 import com.iraka.widget.ScreenEvent;
 import com.ling.screen.Device;
 
@@ -46,7 +45,7 @@ public class TouchImageView extends android.support.v7.widget.AppCompatImageView
     @Override
     public void setImageBitmap(Bitmap bm) {
         // TODO Auto-generated method stub
-        super.setImageBitmap(bm);
+
     }
 
     public class MatrixTouchListener implements OnTouchListener{

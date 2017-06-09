@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -36,7 +38,7 @@ public class WorkingActivity extends Activity{
     private static final String TAG = "WorkingActivity";
     Device myDevice;
     Device temp_device;
-    Bitmap tempBitmap;
+    //Bitmap tempBitmap;
     Matrix matrix;
     ScreenEvent screenEvent;
     public byte [] buffer=new byte[100];;
@@ -183,7 +185,7 @@ public class WorkingActivity extends Activity{
         } else {
             return;
         }
-        tempBitmap = Bitmap.createBitmap(myDevice.bitmap, 0, 0, myDevice.bitmap.getWidth(), myDevice.bitmap.getHeight(), matrix, true);
+        //tempBitmap = Bitmap.createBitmap(myDevice.bitmap, 0, 0, myDevice.bitmap.getWidth(), myDevice.bitmap.getHeight(), matrix, true);
         Message msg = new Message();
         msg.what = 1;
         handler.sendMessage(msg);
@@ -218,7 +220,11 @@ public class WorkingActivity extends Activity{
         public void handleMessage(Message msg) {
             if (msg.what == 1) { // client receive image file
                 Log.i(TAG, "handle Message");
-                myDevice.touchImage.setImageBitmap(tempBitmap);
+                //myDevice.touchImage.setImageBitmap(tempBitmap);
+                Bitmap background = Bitmap.createBitmap(myDevice.touchImage.getWidth(), myDevice.touchImage.getHeight(), Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(background);
+                canvas.drawBitmap(myDevice.bitmap, matrix, new Paint());
+                myDevice.touchImage.setImageBitmap(background);
             }
         }
     };
