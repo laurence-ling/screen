@@ -6,13 +6,17 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.PixelFormat;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -209,23 +213,29 @@ public class WorkingActivity extends Activity{
             String picturePath = cursor.getString(columnIndex);
             cursor.close();
             //send;
-            myDevice.touchImage.setImageBitmap(BitmapFactory.decodeFile(picturePath));
             myDevice.bitmap = BitmapFactory.decodeFile(picturePath);
-            Log.i(TAG,"   picture showed");
+            setImage(myDevice.bitmap, new Matrix());
+            Log.w(TAG,"   picture showed");
             ((ServerDevice)myDevice).sendFile(myDevice.bitmap);
             openPicBtn.setVisibility(View.GONE);
         }
+    }
+    public static Paint paint = new Paint();
+    public void setImage(Bitmap bitmap, Matrix _matrix){
+        Bitmap background = Bitmap.createBitmap(myDevice.touchImage.getWidth(), myDevice.touchImage.getHeight(), Bitmap.Config.ARGB_8888);
+        Log.w(TAG, myDevice.touchImage.getWidth()+" width " + myDevice.touchImage.getHeight());
+        Canvas canvas = new Canvas(background);
+        canvas.drawBitmap(bitmap, _matrix, paint);
+        myDevice.touchImage.setImageBitmap(background);
+
     }
     public Handler handler=new Handler() {
         @Override
         public void handleMessage(Message msg) {
             if (msg.what == 1) { // client receive image file
-                Log.i(TAG, "handle Message");
+                Log.w(TAG, "handle Message");
                 //myDevice.touchImage.setImageBitmap(tempBitmap);
-                Bitmap background = Bitmap.createBitmap(myDevice.touchImage.getWidth(), myDevice.touchImage.getHeight(), Bitmap.Config.ARGB_8888);
-                Canvas canvas = new Canvas(background);
-                canvas.drawBitmap(myDevice.bitmap, matrix, new Paint());
-                myDevice.touchImage.setImageBitmap(background);
+                setImage(myDevice.bitmap, matrix);
             }
         }
     };

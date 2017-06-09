@@ -37,15 +37,9 @@ public class TouchImageView extends android.support.v7.widget.AppCompatImageView
         setOnTouchListener(mListener);
         mGestureDetector=new GestureDetector(getContext(), new GestureListener(mListener));
         //背景设置为balck
-        setBackgroundColor(Color.BLACK);
+        //setBackgroundColor(Color.BLACK);
         //将缩放类型设置为FIT_CENTER，表示把图片按比例扩大/缩小到View的宽度，居中显示
         setScaleType(ScaleType.FIT_CENTER);
-    }
-
-    @Override
-    public void setImageBitmap(Bitmap bm) {
-        // TODO Auto-generated method stub
-
     }
 
     public class MatrixTouchListener implements OnTouchListener{
