@@ -37,6 +37,7 @@ public class MainActivity extends Activity {
                 Intent newGroup = new Intent(MainActivity.this, NewGroupActivity.class);
                 //newGroup.putExtra("device", myDevice);
                 MainActivity.this.startActivity(newGroup);
+	            MainActivity.this.finish();
             }
         });
         findGpBtn.setOnClickListener(new View.OnClickListener() {
@@ -46,6 +47,7 @@ public class MainActivity extends Activity {
                 Intent addGroup = new Intent(MainActivity.this, AddGroupActivity.class);
                 //addGroup.putExtra("device", myDevice);
                 MainActivity.this.startActivity(addGroup);
+	            MainActivity.this.finish();
             }
         });
         

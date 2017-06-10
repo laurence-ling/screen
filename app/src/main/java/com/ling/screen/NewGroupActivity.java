@@ -64,6 +64,7 @@ public class NewGroupActivity extends Activity {
             Intent calibrate = new Intent(NewGroupActivity.this, CalibrateActivity.class);
 	        Device.myDevice=myDevice;
             NewGroupActivity.this.startActivity(calibrate);
+	        NewGroupActivity.this.finish();
         }
     }
 
