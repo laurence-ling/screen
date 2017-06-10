@@ -147,7 +147,7 @@ public class ClientDevice extends Device {
         @Override
         public void run(){
             Log.i(TAG, "receive event thread started");
-            while(true) {
+            while(wkAcitivity.myDevice!=null&&wkAcitivity.myDevice.udpSocket!=null) {
                 byte[] buf = new byte[44];
                 DatagramPacket recvPacket = new DatagramPacket(buf, buf.length);
                 try{

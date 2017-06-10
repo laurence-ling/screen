@@ -129,6 +129,7 @@ public class CalibrateActivity extends Activity{
 				infoText.setText(new Coordinate(myDevice.posX,myDevice.posY,myDevice.angle).toString());
 				Intent wkIntent = new Intent(CalibrateActivity.this, WorkingActivity.class);
 				CalibrateActivity.this.startActivity(wkIntent);
+				CalibrateActivity.this.finish();
 			}
 		}
 	};

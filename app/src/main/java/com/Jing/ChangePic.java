@@ -41,6 +41,7 @@ public class ChangePic {
     }
 
     public void getScreenInfo() {
+        if(myDevice==null)return;
         finger_num_old = serverDevice.finger_num_old;
         point_old[0] = serverDevice.point_old[0];
         point_old[1] = serverDevice.point_old[1];

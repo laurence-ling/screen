@@ -48,10 +48,10 @@ public class WorkingActivity extends Activity{
     Matrix matrix;
     ScreenEvent screenEvent;
     ScreenEvent midEvent;
-    public byte [] buffer=new byte[100];;
+    public byte [] buffer=new byte[100];
     //public DatagramPacket Package;
     Button openPicBtn;
-
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -128,7 +128,7 @@ public class WorkingActivity extends Activity{
         @Override
         public void run() {
             ChangePic changepic = new ChangePic(myDevice);
-            while(true){
+            while(myDevice!=null&&myDevice.udpSocket!=null){
                 byte[] buffer = new byte[100];
                 DatagramPacket pack=new DatagramPacket(buffer, buffer.length);
                 try {
@@ -279,6 +279,8 @@ public class WorkingActivity extends Activity{
     
     @Override
     public void onBackPressed(){
-        super.onBackPressed();
+        Device.myDevice.closeSocket();
+        Device.myDevice=null;
+        finish();
     }
 }
