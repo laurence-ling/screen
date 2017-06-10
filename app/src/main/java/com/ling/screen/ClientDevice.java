@@ -76,7 +76,7 @@ public class ClientDevice extends Device {
                 } catch (SocketTimeoutException e) {
 
                 } catch (IOException e) {
-                    Log.e(TAG, "receive errorr", e);
+                    Log.e(TAG, "receive error", e);
                 }
             }
         }
@@ -84,17 +84,26 @@ public class ClientDevice extends Device {
             int len = packet.getLength();
             String recvStr = new String(packet.getData()).substring(0, len);
             String[] recvStrInfo=recvStr.split("@");
-            if(recvStrInfo.length>1){
-                String type=recvStrInfo[0];
-                String serverName=recvStrInfo[1];
-                Log.i(TAG,"find server "+serverName);
-                InetSocketAddress saddr=new InetSocketAddress(packet.getAddress(),packet.getPort());
-                if(!agActivity.serverMap.containsKey(serverName)){
-                    agActivity.serverMap.put(serverName,saddr);
-                    Message msg=new Message();
-                    msg.what=1;  //refresh server list
-                    agActivity.handler.sendMessage(msg);
+            String type=recvStrInfo[0];
+            if(type.equals("1")){ // Beacon
+                if(recvStrInfo.length>1){
+                    String serverName=recvStrInfo[1];
+                    Log.i(TAG,"find server "+serverName);
+                    InetSocketAddress saddr=new InetSocketAddress(packet.getAddress(),packet.getPort());
+                    if(!agActivity.serverMap.containsKey(serverName)){
+                        agActivity.serverMap.put(serverName,saddr);
+                        Message msg=new Message();
+                        msg.what=1;  //refresh server list
+                        agActivity.handler.sendMessage(msg);
+                    }
                 }
+            }
+            else if(type.equals("3")){ // ack
+                serverAddr = packet.getAddress();
+                status = Device.CALIBRATE_STATUS;
+                Message sucMsg = new Message();
+                sucMsg.what = 2;
+                agActivity.handler.sendMessage(sucMsg);
             }
         }
     }
@@ -102,7 +111,6 @@ public class ClientDevice extends Device {
         DatagramPacket sendPacket;
         DatagramPacket recvPacket;
         InetSocketAddress saddr;
-        int round = 3;
         public ConnectServerThread(InetSocketAddress addr){
             saddr = addr;
         }
@@ -111,29 +119,30 @@ public class ClientDevice extends Device {
             byte[] buf = new byte[100];
             recvPacket = new DatagramPacket(buf, buf.length);
             String msg = "2@";
-            while (round-- > 0 && status == Device.WAITING_STATUS) { // try sending 10 times
-                try {
-                    sendPacket = new DatagramPacket(msg.getBytes(), msg.length(), saddr);
-                    udpSocket.send(sendPacket);
+            
+            // click once, send once
+            try {
+                sendPacket = new DatagramPacket(msg.getBytes(), msg.length(), saddr);
+                udpSocket.send(sendPacket);
+                
+                // Receive moved to FindServerThread to confirm stability
+                /*udpSocket.setSoTimeout(100);
+                udpSocket.receive(recvPacket);
+                String recvStr = new String(recvPacket.getData());
+                String type = recvStr.split("@")[0];
+                if (type.equals("3")) {// receive ack sucessfully
+                    serverAddr = saddr.getAddress();
+                    udpSocket.setSoTimeout(0);
+                    status = Device.CALIBRATE_STATUS;
+                    Message sucMsg = new Message();
+                    sucMsg.what = 2;
+                    agActivity.handler.sendMessage(sucMsg);
+                    break;
+                }*/
+            }catch (SocketTimeoutException e){
 
-                    udpSocket.setSoTimeout(100);
-                    udpSocket.receive(recvPacket);
-                    String recvStr = new String(recvPacket.getData());
-                    String type = recvStr.split("@")[0];
-                    if (type.equals("3")) {// receive ack sucessfully
-                        serverAddr = saddr.getAddress();
-                        udpSocket.setSoTimeout(0);
-                        status = Device.CALIBRATE_STATUS;
-                        Message sucMsg = new Message();
-                        sucMsg.what = 2;
-                        agActivity.handler.sendMessage(sucMsg);
-                        break;
-                    }
-                }catch (SocketTimeoutException e){
-
-                }catch (IOException e) {
-                    Log.e(TAG, "connect server error", e);
-                }
+            }catch (IOException e) {
+                Log.e(TAG, "connect server error", e);
             }
         }
     }
