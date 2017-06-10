@@ -121,34 +121,34 @@ public class Device implements Serializable{
     
     //====================== function for calibration =============================
     
+    private Coordinate calcSpeed(List<ScreenEvent> historyTouch,int pos){
+        double vX=0;
+        double vY=0;
+        for(int i=0;i<3;i++){ // {3,4,5}-{0,1,2}
+            ScreenEvent ev1=historyTouch.get(i+pos);
+            ScreenEvent ev2=historyTouch.get(i+pos+3);
+            vX+=(ev1.posX-ev2.posX)/(ev1.timestamp-ev2.timestamp);
+            vY+=(ev1.posY-ev2.posY)/(ev1.timestamp-ev2.timestamp);
+        }
+        
+        return new Coordinate(vX/3,vY/3,0);
+    }
+    
     public String reportCalibrationMotionSequence(List<ScreenEvent> historyTouch,CalibrateActivity ca){
         final int size=historyTouch.size();
-        if(size<6){
+        if(size<8){
             Log.i(TAG,"Touch Sequence Too Short");
-            return "Invalid";
+            return "Touch Sequence Too Short";
         }
-        
-        /*for(int i=0;i<historyTouch.size();i++){
-            Log.i(TAG,historyTouch.get(i).toString());
-        }
-        Log.i(TAG,"Length = "+historyTouch.size());*/
-        
-        // Shall be using 5 point central diff
-        // Temp: use first-order approx. instead
         
         // Filter out first & last event to prevent side effect
-        ScreenEvent evS1=historyTouch.get(1); // Start
-        ScreenEvent evS2=historyTouch.get(5);
-        ScreenEvent evE1=historyTouch.get(size-2); // End
-        ScreenEvent evE2=historyTouch.get(size-6);
-        
-        double vSX=(evS1.posX-evS2.posX)/(evS1.timestamp-evS2.timestamp);
-        double vSY=(evS1.posY-evS2.posY)/(evS1.timestamp-evS2.timestamp);
-        double vEX=(evE1.posX-evE2.posX)/(evE1.timestamp-evE2.timestamp);
-        double vEY=(evE1.posY-evE2.posY)/(evE1.timestamp-evE2.timestamp);
+        ScreenEvent eSt=historyTouch.get(1);
+        ScreenEvent eEd=historyTouch.get(size-7);
+        Coordinate vSt=calcSpeed(historyTouch,1);
+        Coordinate vEd=calcSpeed(historyTouch,size-7);
     
-        ScreenEvent evSt=new ScreenEvent(ScreenEvent.MOVE,evS1.timestamp,evS1.posX,evS1.posY,vSX,vSY);
-        ScreenEvent evEd=new ScreenEvent(ScreenEvent.MOVE,evE1.timestamp,evE1.posX,evE1.posY,vEX,vEY);
+        ScreenEvent evSt=new ScreenEvent(ScreenEvent.MOVE,eSt.timestamp,eSt.posX,eSt.posY,vSt.x,vSt.y);
+        ScreenEvent evEd=new ScreenEvent(ScreenEvent.MOVE,eEd.timestamp,eEd.posX,eEd.posY,vEd.x,vEd.y);
         Log.i(TAG,"Start = "+evSt.toString());
         Log.i(TAG,"End   = "+evEd.toString());
         
@@ -157,8 +157,8 @@ public class Device implements Serializable{
             new Thread(new SendCalibrateDataThread(evSt,evEd)).start();
         }
         
-        return "("+Math.round(vSX*1000)/1000.+","+Math.round(vSY*1000)/1000.+")~("
-        +Math.round(vEX*1000)/1000.+","+Math.round(vEY*1000)/1000.+")";
+        return "Velocity = ("+Math.round(Math.hypot(vSt.x,vSt.y)*1000)/1000.+")~("
+        +Math.round(Math.hypot(vEd.x,vEd.y)*1000)/1000.+")";
     }
     
     DatagramSocket calibDataSocket;

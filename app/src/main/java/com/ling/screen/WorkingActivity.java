@@ -276,4 +276,9 @@ public class WorkingActivity extends Activity{
             }
         }
     };
+    
+    @Override
+    public void onBackPressed(){
+        super.onBackPressed();
+    }
 }
