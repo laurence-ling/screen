@@ -377,8 +377,11 @@ public class ServerDevice extends Device{
                         }
                         vLastEnd=Math.hypot(evLastEnd.velX,evLastEnd.velY);
                         vNowStart=Math.hypot(evNowStart.velX,evNowStart.velY);
+                        if(vNowStart<0.01||vLastEnd<0.01){ // too slow
+                            throw new DataFormatException("Motion Too Slow");
+                        }
                         vDiffRatio=Math.abs(vLastEnd-vNowStart)/Math.max(vLastEnd,vNowStart);
-                        if(vDiffRatio>0.15){
+                        if(vDiffRatio>0.15){ // Precision
                             throw new DataFormatException("Unstable Connection: "+vDiffRatio);
                         }
                         lastDevice=deviceMap.get(lastAddr.getAddress());
@@ -419,6 +422,34 @@ public class ServerDevice extends Device{
                         ackEvent.writeEventBuffer(buffer,44);
                         ackPacket=new DatagramPacket(buffer,buffer.length); // Now Successful
                         ackPacket.setSocketAddress(nowAddr);
+                        udpSocket.send(ackPacket);
+                    }
+    
+                    if(!lastDevice.isCalibrated&&nowDevice.isCalibrated){ // from new to old
+                        calibratedDeviceCnt++;
+        
+                        double v_avg=(vLastEnd+vNowStart)/2;
+                        double dis=v_avg*(nowStartTime-lastEndTime);
+        
+                        double v1_a=Math.atan2(evLastEnd.velY,evLastEnd.velX)+Math.PI; // reverse
+                        Coordinate v1=new Coordinate(evLastEnd.posX,evLastEnd.posY,v1_a);
+                        double v2_a=Math.atan2(evNowStart.velY,evNowStart.velX)+Math.PI; // reverse
+                        Coordinate v2=new Coordinate(evNowStart.posX,evNowStart.posY,v2_a);
+                        Coordinate lastCoord=CoordinateMatch.match(v2,v1,dis);
+        
+                        lastDevice.isCalibrated=true;
+                        Log.i(TAG,"DIS = "+dis+" Coord = "+lastCoord);
+                        Log.i(TAG,"Calib Successful vdiff="+vDiffRatio);
+                        Log.i(TAG,"Send Success to "+lastAddr);
+                        lastDevice.posX=lastCoord.x;
+                        lastDevice.posY=lastCoord.y;
+                        lastDevice.angle=lastCoord.a;
+        
+                        ScreenEvent ackEvent=new ScreenEvent(ScreenEvent.CALIB_OK,0,lastCoord.x,lastCoord.y,lastCoord.a,0);
+                        ackEvent.writeEventBuffer(buffer,0); // write twice for fun
+                        ackEvent.writeEventBuffer(buffer,44);
+                        ackPacket=new DatagramPacket(buffer,buffer.length); // Now Successful
+                        ackPacket.setSocketAddress(lastAddr);
                         udpSocket.send(ackPacket);
                     }
                     
