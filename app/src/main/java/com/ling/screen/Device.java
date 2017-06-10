@@ -121,7 +121,7 @@ public class Device implements Serializable{
     
     //====================== function for calibration =============================
     
-    private Coordinate calcSpeed(List<ScreenEvent> historyTouch,int pos){
+    private Coordinate calcSpeed6(List<ScreenEvent> historyTouch,int pos){
         double vX=0;
         double vY=0;
         for(int i=0;i<3;i++){ // {3,4,5}-{0,1,2}
@@ -131,7 +131,21 @@ public class Device implements Serializable{
             vY+=(ev1.posY-ev2.posY)/(ev1.timestamp-ev2.timestamp);
         }
         
-        return new Coordinate(vX/3,vY/3,0);
+        return new Coordinate(vX/3,vY/3);
+    }
+    
+    private ScreenEvent calcPosition3(List<ScreenEvent> historyTouch,int pos){
+        double pX=0;
+        double pY=0;
+        long timestamp=0;
+        for(int i=0;i<3;i++){
+            ScreenEvent ev=historyTouch.get(i+pos);
+            pX+=ev.posX;
+            pY+=ev.posY;
+            timestamp+=ev.timestamp;
+        }
+    
+        return new ScreenEvent(0,timestamp/3,pX/3,pY/3,0,0); // * timestamp overflow ?
     }
     
     public String reportCalibrationMotionSequence(List<ScreenEvent> historyTouch,CalibrateActivity ca){
@@ -141,14 +155,15 @@ public class Device implements Serializable{
             return "Touch Sequence Too Short";
         }
         
-        // Filter out first & last event to prevent side effect
-        ScreenEvent eSt=historyTouch.get(1);
-        ScreenEvent eEd=historyTouch.get(size-7);
-        Coordinate vSt=calcSpeed(historyTouch,1);
-        Coordinate vEd=calcSpeed(historyTouch,size-7);
+        // Filter out first & last event to prevent screen side effect
+        // Apply avg filter to Position & Velocity
+        ScreenEvent pSt=calcPosition3(historyTouch,1);
+        ScreenEvent pEd=calcPosition3(historyTouch,size-4);
+        Coordinate vSt=calcSpeed6(historyTouch,1);
+        Coordinate vEd=calcSpeed6(historyTouch,size-7);
     
-        ScreenEvent evSt=new ScreenEvent(ScreenEvent.MOVE,eSt.timestamp,eSt.posX,eSt.posY,vSt.x,vSt.y);
-        ScreenEvent evEd=new ScreenEvent(ScreenEvent.MOVE,eEd.timestamp,eEd.posX,eEd.posY,vEd.x,vEd.y);
+        ScreenEvent evSt=new ScreenEvent(ScreenEvent.MOVE,pSt.timestamp,pSt.posX,pSt.posY,vSt.x,vSt.y);
+        ScreenEvent evEd=new ScreenEvent(ScreenEvent.MOVE,pEd.timestamp,pEd.posX,pEd.posY,vEd.x,vEd.y);
         Log.i(TAG,"Start = "+evSt.toString());
         Log.i(TAG,"End   = "+evEd.toString());
         

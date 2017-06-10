@@ -87,7 +87,7 @@ public class WorkingActivity extends Activity{
     public class SendEventThread implements Runnable{
         @Override
         public void run() {
-            while (true) {
+            while (Device.myDevice!=null) {
                 try {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
